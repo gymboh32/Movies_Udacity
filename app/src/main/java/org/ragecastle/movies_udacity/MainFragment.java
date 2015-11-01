@@ -8,7 +8,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.GridView;
 
 import org.json.JSONException;
@@ -19,9 +18,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 /**
  * Created by jahall on 11/1/15.
@@ -30,7 +27,10 @@ public class MainFragment extends Fragment {
 
     private final String LOG_TAG = MainFragment.class.getSimpleName();
     // TODO: Change to pass in image
-    private ArrayAdapter<String> posterAdapter;
+//    private ArrayAdapter<String> posterAdapter;
+    private MoviePosterAdapter posterAdapter;
+    private View rootView;
+    private GridView gridView;
 
     public MainFragment(){ }
 
@@ -44,37 +44,59 @@ public class MainFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // Create the rootView of the Fragment
-        View rootView = inflater.inflate(R.layout.fragment_main, container, false);
+        rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
         // Create default data to be displayed
         // TODO: change to image view
-        final String[] posterPathArray={
-                "poster_1",
-                "poster_2",
-                "poster_3",
-                "poster_4",
-                "poster_5",
-                "poster_6",
-                "poster_7"
-        };
+//        final String[] posterPathArray={
+//                "poster_1",
+//                "poster_2",
+//                "poster_3",
+//                "poster_4",
+//                "poster_5",
+//                "poster_6",
+//                "poster_7"
+//        };
 
         // Create list to be passed into array
         // TODO: Change to image path
-        List<String> posterPath = new ArrayList<>(Arrays.asList(posterPathArray));
+//        List<String> posterPath = new ArrayList<>(Arrays.asList(posterPathArray));
 
         // Create the adapter passing in the list
         // TODO: Change to image list instead of String
-        posterAdapter = new ArrayAdapter<String>(getActivity(),
-                R.layout.list_item_poster,
-                R.id.list_item_poster_text,
-                posterPath);
+//        posterAdapter = new ArrayAdapter<String>(getActivity(),
+//                R.layout.list_item_poster,
+//                R.id.list_item_poster_image,
+//                posterPath);
+//
+
+        MoviePoster[] posterPathArray = {
+                new MoviePoster("http://image.tmdb.org/t/p/w500/t90Y3G8UGQp0f0DrP60wRu9gfrH.jpg"),
+                new MoviePoster("http://image.tmdb.org/t/p/w500/t90Y3G8UGQp0f0DrP60wRu9gfrH.jpg"),
+                new MoviePoster("http://image.tmdb.org/t/p/w500/t90Y3G8UGQp0f0DrP60wRu9gfrH.jpg"),
+                new MoviePoster("http://image.tmdb.org/t/p/w500/t90Y3G8UGQp0f0DrP60wRu9gfrH.jpg"),
+                new MoviePoster("http://image.tmdb.org/t/p/w500/t90Y3G8UGQp0f0DrP60wRu9gfrH.jpg"),
+                new MoviePoster("http://image.tmdb.org/t/p/w500/t90Y3G8UGQp0f0DrP60wRu9gfrH.jpg"),
+                new MoviePoster("http://image.tmdb.org/t/p/w500/t90Y3G8UGQp0f0DrP60wRu9gfrH.jpg"),
+                new MoviePoster("http://image.tmdb.org/t/p/w500/t90Y3G8UGQp0f0DrP60wRu9gfrH.jpg"),
+                new MoviePoster("http://image.tmdb.org/t/p/w500/t90Y3G8UGQp0f0DrP60wRu9gfrH.jpg")
+        };
+      //  posterAdapter = new MoviePosterAdapter(getActivity(), Arrays.asList(posterPathArray));
 
         // Create and populate grid view
-        GridView gridView;
+
         gridView = (GridView) rootView.findViewById(R.id.gridview_posters);
+//        gridView.setAdapter(posterAdapter);
+
+        fillGrid(posterPathArray);
+        return rootView;
+    }
+
+    public void fillGrid(MoviePoster[] moviePosters){
+        posterAdapter = new MoviePosterAdapter(getActivity(), Arrays.asList(moviePosters));
+        // Populate grid view
         gridView.setAdapter(posterAdapter);
 
-        return rootView;
     }
 
     public class FetchMoviesTask extends AsyncTask<Void, Void, String[]>{
@@ -95,19 +117,16 @@ public class MainFragment extends Fragment {
                 final String BASE_URL = "https://api.themoviedb.org/3/discover/movie";
                 final String API_KEY_PARAM = "api_key";
                 final String SORT_BY_PARAM = "sort_by";
-                final String APIKEY = "b7a9ab2c1f215f3bb13a14d2dca30f56";
+                final String APIKEY = "";
 
                 // Build the URI to pass in for movie information
                 Uri builder = Uri.parse(BASE_URL).buildUpon()
                         .appendQueryParameter(API_KEY_PARAM, APIKEY)
-                        .appendQueryParameter(SORT_BY_PARAM, "")
+                        .appendQueryParameter(SORT_BY_PARAM, "vote_count.desc")
                         .build();
 
                 // Create URL to pass in for movie information
                 URL url = new URL(builder.toString());
-
-                // TODO: remove verbose log
-                Log.v(LOG_TAG, url.toString());
 
                 // Open the connection for the HTTP request
                 connection = (HttpURLConnection) url.openConnection();
@@ -157,11 +176,24 @@ public class MainFragment extends Fragment {
 
         @Override
         protected void onPostExecute(String[] results) {
+            final String BASE_URL = "http://image.tmdb.org/t/p/w780";
             if(results != null){
-                posterAdapter.clear();
-                for(String poster : results){
-                    posterAdapter.add(poster);
+//                posterAdapter.clear();
+//                for(String poster : results){
+//                    MoviePoster moviePoster = new MoviePoster(BASE_URL.concat(poster));
+////                    posterAdapter.add();
+////                    Picasso.with(getActivity()).load(BASE_URL.concat(poster)).into(rootView.findViewById(R.id.list_item_poster_image));
+//                    posterAdapter.add(moviePoster);
+
+                MoviePoster[] moviePosters = new MoviePoster[results.length];
+                for(int i=0;i<results.length;i++){
+                    moviePosters[i] = new MoviePoster(BASE_URL.concat(results[i]));
+                    posterAdapter.add(moviePosters[i]);
                 }
+
+//                posterAdapter = new MoviePosterAdapter(getActivity(), Arrays.asList(moviePosters));
+//                gridView.setAdapter(posterAdapter);
+                fillGrid(moviePosters);
             }
         }
     }
