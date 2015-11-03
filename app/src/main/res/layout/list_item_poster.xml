@@ -7,7 +7,7 @@
 
     <ImageView
         android:layout_width="match_parent"
-        android:layout_height="fill_parent"
+        android:layout_height="wrap_content"
         android:minHeight="?android:attr/listPreferredItemHeight"
         android:text="@string/poster_path"
         android:id="@+id/list_item_poster_image"

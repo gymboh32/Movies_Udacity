@@ -1,4 +1,12 @@
 <resources>
     <string name="app_name">Movies_Udacity</string>
     <string name="poster_path">poster_path</string>
+    <string name="action_settings">Settings</string>
+    <string name="pref_sort_key">popularity.desc</string>
+    <string name="pref_title_sort">Sort by</string>
+    <string name="pref_default_sort">popularity.desc</string>
+    <string name="title_settings_activity">Settings</string>
+    <string name="action_refresh">Refresh</string>
+    <string name="action_sort_by_popular">Sort by: Popular</string>
+    <string name="action_sort_by_rating">Sort by: Rating</string>
 </resources>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="pref_sort_entries">
+        <item>Popularity</item>
+        <item>Revenue</item>
+    </string-array>
+
+    <string-array name="pref_sort_entryValues">
+        <item>popularity.desc</item>
+        <item>revenue.desc</item>
+    </string-array>
+</resources>

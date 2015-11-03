@@ -1,11 +1,16 @@
 package org.ragecastle.movies_udacity;
 
 import android.app.Fragment;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.GridView;
@@ -37,59 +42,58 @@ public class MainFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        FetchMoviesTask fetchMoviesTask = new FetchMoviesTask();
-        fetchMoviesTask.execute();
+        refresh();
+//        FetchMoviesTask fetchMoviesTask = new FetchMoviesTask();
+//        fetchMoviesTask.execute();
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        // We has menu options
+        setHasOptionsMenu(true);
+
         // Create the rootView of the Fragment
         rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
-        // Create default data to be displayed
-        // TODO: change to image view
-//        final String[] posterPathArray={
-//                "poster_1",
-//                "poster_2",
-//                "poster_3",
-//                "poster_4",
-//                "poster_5",
-//                "poster_6",
-//                "poster_7"
-//        };
-
-        // Create list to be passed into array
-        // TODO: Change to image path
-//        List<String> posterPath = new ArrayList<>(Arrays.asList(posterPathArray));
-
-        // Create the adapter passing in the list
-        // TODO: Change to image list instead of String
-//        posterAdapter = new ArrayAdapter<String>(getActivity(),
-//                R.layout.list_item_poster,
-//                R.id.list_item_poster_image,
-//                posterPath);
-//
-
         MoviePoster[] posterPathArray = {
-                new MoviePoster("http://image.tmdb.org/t/p/w500/t90Y3G8UGQp0f0DrP60wRu9gfrH.jpg"),
-                new MoviePoster("http://image.tmdb.org/t/p/w500/t90Y3G8UGQp0f0DrP60wRu9gfrH.jpg"),
-                new MoviePoster("http://image.tmdb.org/t/p/w500/t90Y3G8UGQp0f0DrP60wRu9gfrH.jpg"),
-                new MoviePoster("http://image.tmdb.org/t/p/w500/t90Y3G8UGQp0f0DrP60wRu9gfrH.jpg"),
-                new MoviePoster("http://image.tmdb.org/t/p/w500/t90Y3G8UGQp0f0DrP60wRu9gfrH.jpg"),
-                new MoviePoster("http://image.tmdb.org/t/p/w500/t90Y3G8UGQp0f0DrP60wRu9gfrH.jpg"),
-                new MoviePoster("http://image.tmdb.org/t/p/w500/t90Y3G8UGQp0f0DrP60wRu9gfrH.jpg"),
-                new MoviePoster("http://image.tmdb.org/t/p/w500/t90Y3G8UGQp0f0DrP60wRu9gfrH.jpg"),
                 new MoviePoster("http://image.tmdb.org/t/p/w500/t90Y3G8UGQp0f0DrP60wRu9gfrH.jpg")
         };
-      //  posterAdapter = new MoviePosterAdapter(getActivity(), Arrays.asList(posterPathArray));
-
-        // Create and populate grid view
 
         gridView = (GridView) rootView.findViewById(R.id.gridview_posters);
-//        gridView.setAdapter(posterAdapter);
 
         fillGrid(posterPathArray);
+
         return rootView;
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_main_fragment, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item){
+        int id = item.getItemId();
+        FetchMoviesTask fetchMoviesTask = new FetchMoviesTask();
+
+        switch (id) {
+            case R.id.action_refresh:
+                // TODO: Remove verbose logs
+                Log.v(LOG_TAG, "attempted to refresh screen");
+                fetchMoviesTask.execute(getSortBy());
+                return true;
+            case R.id.action_sort_popular:
+                // TODO: Remove verbose logs
+                Log.v(LOG_TAG, "Sort By: Popularity");
+                fetchMoviesTask.execute("popularity.desc");
+                return true;
+            case R.id.action_sort_rating:
+                // TODO: Remove verbose logs
+                Log.v(LOG_TAG, "Sort By: Rating");
+                fetchMoviesTask.execute("vote_average.desc");
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     public void fillGrid(MoviePoster[] moviePosters){
@@ -99,17 +103,35 @@ public class MainFragment extends Fragment {
 
     }
 
-    public class FetchMoviesTask extends AsyncTask<Void, Void, String[]>{
+    private void refresh() {
+        // TODO: Remove verbose logs
+        Log.v(LOG_TAG, "attempted to refresh screen");
+        FetchMoviesTask fetchMoviesTask = new FetchMoviesTask();
+        fetchMoviesTask.execute(getSortBy());
+    }
+
+    public String getSortBy() {
+        SharedPreferences sharedPref = PreferenceManager
+                .getDefaultSharedPreferences(getActivity());
+        String sortBy = sharedPref.getString(getString(R.string.pref_sort_key),
+                getString(R.string.pref_default_sort));
+        // TODO: remove verbose log
+        Log.v(LOG_TAG, sortBy);
+
+        return sortBy;
+    }
+
+    public class FetchMoviesTask extends AsyncTask<String, Void, String[]>{
 
         private final String LOG_TAG = FetchMoviesTask.class.getSimpleName();
 
         @Override
-        protected String[] doInBackground(Void... params) {
+        protected String[] doInBackground(String... params) {
 
-            HttpURLConnection connection = null;
+            HttpURLConnection connection;
             BufferedReader reader = null;
-            InputStream inputStream = null;
-            StringBuffer buffer = null;
+            InputStream inputStream;
+            StringBuffer buffer;
             String result = null;
 
             try{
@@ -117,12 +139,12 @@ public class MainFragment extends Fragment {
                 final String BASE_URL = "https://api.themoviedb.org/3/discover/movie";
                 final String API_KEY_PARAM = "api_key";
                 final String SORT_BY_PARAM = "sort_by";
-                final String APIKEY = "";
+                final String APIKEY = "b7a9ab2c1f215f3bb13a14d2dca30f56";
 
                 // Build the URI to pass in for movie information
                 Uri builder = Uri.parse(BASE_URL).buildUpon()
                         .appendQueryParameter(API_KEY_PARAM, APIKEY)
-                        .appendQueryParameter(SORT_BY_PARAM, "vote_count.desc")
+                        .appendQueryParameter(SORT_BY_PARAM, params[0])
                         .build();
 
                 // Create URL to pass in for movie information
@@ -176,14 +198,9 @@ public class MainFragment extends Fragment {
 
         @Override
         protected void onPostExecute(String[] results) {
+
             final String BASE_URL = "http://image.tmdb.org/t/p/w780";
             if(results != null){
-//                posterAdapter.clear();
-//                for(String poster : results){
-//                    MoviePoster moviePoster = new MoviePoster(BASE_URL.concat(poster));
-////                    posterAdapter.add();
-////                    Picasso.with(getActivity()).load(BASE_URL.concat(poster)).into(rootView.findViewById(R.id.list_item_poster_image));
-//                    posterAdapter.add(moviePoster);
 
                 MoviePoster[] moviePosters = new MoviePoster[results.length];
                 for(int i=0;i<results.length;i++){
@@ -191,10 +208,9 @@ public class MainFragment extends Fragment {
                     posterAdapter.add(moviePosters[i]);
                 }
 
-//                posterAdapter = new MoviePosterAdapter(getActivity(), Arrays.asList(moviePosters));
-//                gridView.setAdapter(posterAdapter);
                 fillGrid(moviePosters);
             }
         }
+
     }
 }
