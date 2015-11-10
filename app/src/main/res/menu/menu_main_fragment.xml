@@ -9,17 +9,19 @@
         android:id="@+id/action_refresh"
         android:title="@string/action_refresh"
         android:orderInCategory="1"
+        android:onClick="onOptionsItemSelected"
         app:showAsAction="never" />
 
     <item
-        android:id="@+id/action_sort_popular"
+        android:id="@+id/action_sort_by_popular"
         android:title="@string/action_sort_by_popular"
-        android:enabled="true"
+        android:orderInCategory="10"
         app:showAsAction="never" />
 
     <item
-        android:id="@+id/action_sort_rating"
+        android:id="@+id/action_sort_by_rating"
         android:title="@string/action_sort_by_rating"
+        android:orderInCategory="20"
         app:showAsAction="never" />
 
 </menu>

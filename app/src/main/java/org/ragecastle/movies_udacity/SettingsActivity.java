@@ -40,10 +40,9 @@ public class SettingsActivity extends PreferenceActivity {
             preference.getOnPreferenceChangeListener();
             preference.getPreferenceManager().getSharedPreferences();
 
-        onPreferenceChange(preference,
-                PreferenceManager
-                        .getDefaultSharedPreferences(preference.getContext())
-                        .getString(preference.getKey(), ""));
+        onPreferenceChange(preference, PreferenceManager
+                .getDefaultSharedPreferences(preference.getContext())
+                .getString(preference.getKey(), ""));
 
         }
 

@@ -9,4 +9,5 @@
     <string name="action_refresh">Refresh</string>
     <string name="action_sort_by_popular">Sort by: Popular</string>
     <string name="action_sort_by_rating">Sort by: Rating</string>
+    <string name="action_sort">Sort By</string>
 </resources>

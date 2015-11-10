@@ -14,8 +14,11 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.GridView;
+import android.widget.Toast;
 
 import org.json.JSONException;
+import org.ragecastle.movies_udacity.adapters.Movie;
+import org.ragecastle.movies_udacity.adapters.MoviePosterAdapter;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -31,8 +34,6 @@ import java.util.Arrays;
 public class MainFragment extends Fragment {
 
     private final String LOG_TAG = MainFragment.class.getSimpleName();
-    // TODO: Change to pass in image
-//    private ArrayAdapter<String> posterAdapter;
     private MoviePosterAdapter posterAdapter;
     private View rootView;
     private GridView gridView;
@@ -42,28 +43,9 @@ public class MainFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        refresh();
-//        FetchMoviesTask fetchMoviesTask = new FetchMoviesTask();
-//        fetchMoviesTask.execute();
-    }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // We has menu options
         setHasOptionsMenu(true);
-
-        // Create the rootView of the Fragment
-        rootView = inflater.inflate(R.layout.fragment_main, container, false);
-
-        MoviePoster[] posterPathArray = {
-                new MoviePoster("http://image.tmdb.org/t/p/w500/t90Y3G8UGQp0f0DrP60wRu9gfrH.jpg")
-        };
-
-        gridView = (GridView) rootView.findViewById(R.id.gridview_posters);
-
-        fillGrid(posterPathArray);
-
-        return rootView;
+        refresh();
     }
 
     @Override
@@ -73,60 +55,94 @@ public class MainFragment extends Fragment {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item){
-        int id = item.getItemId();
-        FetchMoviesTask fetchMoviesTask = new FetchMoviesTask();
+        // TODO: Remove verbose logs
+        Log.v(LOG_TAG, "Item selected");
+        SharedPreferences sharedPref = PreferenceManager
+                .getDefaultSharedPreferences(getActivity());
+        SharedPreferences.Editor sharedEditor = sharedPref.edit();
+        final String POPULAR = "popularity.desc";
+        final String RATING = "vote_average.desc";
 
-        switch (id) {
+        switch (item.getItemId()) {
             case R.id.action_refresh:
                 // TODO: Remove verbose logs
-                Log.v(LOG_TAG, "attempted to refresh screen");
-                fetchMoviesTask.execute(getSortBy());
+                Log.v(LOG_TAG, "Item selected");
+                Toast.makeText(getActivity(), "Refreshing", Toast.LENGTH_LONG).show();
+                refresh();
                 return true;
-            case R.id.action_sort_popular:
+            case R.id.action_sort_by_popular:
                 // TODO: Remove verbose logs
-                Log.v(LOG_TAG, "Sort By: Popularity");
-                fetchMoviesTask.execute("popularity.desc");
+                Log.v(LOG_TAG, "Item selected");
+                Toast.makeText(getActivity(), "Sorting by Popularity", Toast.LENGTH_LONG).show();
+                sharedEditor.putString(getString(R.string.pref_sort_key), POPULAR);
+                sharedEditor.commit();
+                refresh();
                 return true;
-            case R.id.action_sort_rating:
+            case R.id.action_sort_by_rating:
                 // TODO: Remove verbose logs
-                Log.v(LOG_TAG, "Sort By: Rating");
-                fetchMoviesTask.execute("vote_average.desc");
+                Log.v(LOG_TAG, "Item selected");
+                Toast.makeText(getActivity(), "Sorting by Rating", Toast.LENGTH_LONG).show();
+                sharedEditor.putString(getString(R.string.pref_sort_key), RATING);
+                sharedEditor.commit();
+                refresh();
                 return true;
+            default:
+                // TODO: Remove verbose logs
+                Log.v(LOG_TAG, "Item selected");
+                return super.onOptionsItemSelected(item);
         }
-        return super.onOptionsItemSelected(item);
     }
 
-    public void fillGrid(MoviePoster[] moviePosters){
+    @Override
+    public View onCreateView(LayoutInflater inflater,
+                             ViewGroup container,
+                             Bundle savedInstanceState) {
+
+        // Create the rootView of the Fragment
+        rootView = inflater.inflate(R.layout.fragment_main, container, false);
+
+        Movie[] posterPathArray = {
+                new Movie("http://image.tmdb.org/t/p/w500/t90Y3G8UGQp0f0DrP60wRu9gfrH.jpg", "1")
+        };
+
+        gridView = (GridView) rootView.findViewById(R.id.gridview_posters);
+
+        fillGrid(posterPathArray);
+
+        return rootView;
+    }
+
+    private void fillGrid(Movie[] moviePosters){
         posterAdapter = new MoviePosterAdapter(getActivity(), Arrays.asList(moviePosters));
         // Populate grid view
         gridView.setAdapter(posterAdapter);
 
+        // TODO: Add on item click listener to launch new movie details activity
+        // gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() { }
     }
 
-    private void refresh() {
-        // TODO: Remove verbose logs
-        Log.v(LOG_TAG, "attempted to refresh screen");
+    public void refresh() {
         FetchMoviesTask fetchMoviesTask = new FetchMoviesTask();
         fetchMoviesTask.execute(getSortBy());
     }
 
-    public String getSortBy() {
+    private String getSortBy() {
         SharedPreferences sharedPref = PreferenceManager
                 .getDefaultSharedPreferences(getActivity());
         String sortBy = sharedPref.getString(getString(R.string.pref_sort_key),
                 getString(R.string.pref_default_sort));
-        // TODO: remove verbose log
-        Log.v(LOG_TAG, sortBy);
+//        // TODO: remove verbose log
+//        Log.v(LOG_TAG, sortBy);
 
         return sortBy;
     }
 
-    public class FetchMoviesTask extends AsyncTask<String, Void, String[]>{
+    public class FetchMoviesTask extends AsyncTask<String, Void, Movie[]>{
 
         private final String LOG_TAG = FetchMoviesTask.class.getSimpleName();
 
         @Override
-        protected String[] doInBackground(String... params) {
+        protected Movie[] doInBackground(String... params) {
 
             HttpURLConnection connection;
             BufferedReader reader = null;
@@ -188,7 +204,7 @@ public class MainFragment extends Fragment {
             }
 
             try {
-                return MovieParser.getPoster(result);
+                return MovieParser.getMovieInfo(result);
             } catch (JSONException e){
                 Log.e(LOG_TAG, e.getMessage(), e);
             }
@@ -197,18 +213,10 @@ public class MainFragment extends Fragment {
         }
 
         @Override
-        protected void onPostExecute(String[] results) {
+        protected void onPostExecute(Movie[] results) {
 
-            final String BASE_URL = "http://image.tmdb.org/t/p/w780";
             if(results != null){
-
-                MoviePoster[] moviePosters = new MoviePoster[results.length];
-                for(int i=0;i<results.length;i++){
-                    moviePosters[i] = new MoviePoster(BASE_URL.concat(results[i]));
-                    posterAdapter.add(moviePosters[i]);
-                }
-
-                fillGrid(moviePosters);
+                fillGrid(results);
             }
         }
 
