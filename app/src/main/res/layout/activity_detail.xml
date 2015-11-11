@@ -4,11 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity$MainFragment">
+    android:id="@+id/container"
+    tools:context="org.ragecastle.movies_udacity.DetailsActivity"
+    tools:ignore="MergeRootFrame">
 
-    <GridView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:numColumns="2"
-        android:id="@+id/gridview_posters"/>
 </FrameLayout>

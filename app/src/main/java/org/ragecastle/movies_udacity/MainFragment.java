@@ -1,6 +1,7 @@
 package org.ragecastle.movies_udacity;
 
 import android.app.Fragment;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -13,6 +14,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.Toast;
 
@@ -50,13 +52,12 @@ public class MainFragment extends Fragment {
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        menu.clear();
         inflater.inflate(R.menu.menu_main_fragment, menu);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item){
-        // TODO: Remove verbose logs
-        Log.v(LOG_TAG, "Item selected");
         SharedPreferences sharedPref = PreferenceManager
                 .getDefaultSharedPreferences(getActivity());
         SharedPreferences.Editor sharedEditor = sharedPref.edit();
@@ -65,30 +66,22 @@ public class MainFragment extends Fragment {
 
         switch (item.getItemId()) {
             case R.id.action_refresh:
-                // TODO: Remove verbose logs
-                Log.v(LOG_TAG, "Item selected");
                 Toast.makeText(getActivity(), "Refreshing", Toast.LENGTH_LONG).show();
                 refresh();
                 return true;
             case R.id.action_sort_by_popular:
-                // TODO: Remove verbose logs
-                Log.v(LOG_TAG, "Item selected");
                 Toast.makeText(getActivity(), "Sorting by Popularity", Toast.LENGTH_LONG).show();
                 sharedEditor.putString(getString(R.string.pref_sort_key), POPULAR);
                 sharedEditor.commit();
                 refresh();
                 return true;
             case R.id.action_sort_by_rating:
-                // TODO: Remove verbose logs
-                Log.v(LOG_TAG, "Item selected");
                 Toast.makeText(getActivity(), "Sorting by Rating", Toast.LENGTH_LONG).show();
                 sharedEditor.putString(getString(R.string.pref_sort_key), RATING);
                 sharedEditor.commit();
                 refresh();
                 return true;
             default:
-                // TODO: Remove verbose logs
-                Log.v(LOG_TAG, "Item selected");
                 return super.onOptionsItemSelected(item);
         }
     }
@@ -117,8 +110,19 @@ public class MainFragment extends Fragment {
         // Populate grid view
         gridView.setAdapter(posterAdapter);
 
-        // TODO: Add on item click listener to launch new movie details activity
-        // gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() { }
+        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                //get the info for the array list item being clicked
+                Movie movie = posterAdapter.getItem(position);
+
+                //create new intent to launch the detail page
+                Intent intent = new Intent(getActivity(), DetailsActivity.class);
+                intent.putExtra(Intent.EXTRA_TEXT, movie.id);
+                startActivity(intent);
+
+            }
+        });
     }
 
     public void refresh() {
@@ -131,8 +135,6 @@ public class MainFragment extends Fragment {
                 .getDefaultSharedPreferences(getActivity());
         String sortBy = sharedPref.getString(getString(R.string.pref_sort_key),
                 getString(R.string.pref_default_sort));
-//        // TODO: remove verbose log
-//        Log.v(LOG_TAG, sortBy);
 
         return sortBy;
     }

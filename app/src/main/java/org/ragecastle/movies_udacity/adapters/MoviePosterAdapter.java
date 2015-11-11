@@ -21,7 +21,7 @@ public class MoviePosterAdapter extends ArrayAdapter<Movie> {
     private static final String LOG_TAG = MoviePosterAdapter.class.getSimpleName();
     private ImageView view;
     private int lastPosition;
-    private final String BASE_URL = "http://image.tmdb.org/t/p/w780";
+    private final String BASE_URL = "http://image.tmdb.org/t/p/w185";
 
     public MoviePosterAdapter(Activity context, List<Movie> movie){
         super(context, 0, movie);
@@ -40,9 +40,8 @@ public class MoviePosterAdapter extends ArrayAdapter<Movie> {
         view = (ImageView) convertView.findViewById(R.id.list_item_poster_image);
 
         String url = BASE_URL.concat(movie.image);
-        // TODO: Remove verbose logs
-//        Log.v(LOG_TAG, url);
-        Picasso.with(getContext()).load(url).into(view);
+
+        Picasso.with(getContext()).load(url).fit().centerCrop().into(view);
 
         return convertView;
     }
@@ -50,9 +49,7 @@ public class MoviePosterAdapter extends ArrayAdapter<Movie> {
     @Override
     public void add(Movie moviePoster) {
         String url = BASE_URL.concat(moviePoster.image);
-        // TODO: Remove verbose logs
-        Log.v(LOG_TAG, url);
-        Picasso.with(getContext()).load(url).into(view);
+        Picasso.with(getContext()).load(url).fit().into(view);
     }
 
 }
