@@ -1,12 +1,53 @@
-<FrameLayout
+<RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="org.ragecastle.movies_udacity.DetailFragment">
+    tools:context="org.ragecastle.movies_udacity.DetailFragment"
+    android:orientation="vertical">
 
-    <TextView android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/detail_text" />
+    <TextView
+        android:id="@+id/movie_title_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="@string/title_view_text" />
 
-</FrameLayout>
+    <ImageView
+        android:id="@+id/poster_image"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/poster_description"
+        android:layout_alignTop="@+id/movie_release_text" />
+
+    <TextView
+        android:id="@+id/movie_release_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="@string/release_view_text"
+        android:layout_marginTop="10dp"
+        android:layout_toEndOf="@+id/poster_image"
+        android:layout_below="@+id/movie_title_text" />
+
+    <TextView
+        android:id="@+id/movie_vote_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="@string/vote_view_text"
+        android:layout_marginTop="10dp"
+        android:layout_toEndOf="@+id/poster_image"
+        android:layout_below="@+id/movie_release_text" />
+
+    <TextView
+        android:id="@+id/movie_overview_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="@string/plot_view_text"
+        android:layout_marginTop="10dp"
+        android:layout_below="@+id/poster_image"
+        android:layout_alignStart="@+id/poster_image" />
+
+</RelativeLayout>

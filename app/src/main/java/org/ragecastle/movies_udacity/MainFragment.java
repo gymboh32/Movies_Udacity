@@ -157,7 +157,7 @@ public class MainFragment extends Fragment {
                 final String BASE_URL = "https://api.themoviedb.org/3/discover/movie";
                 final String API_KEY_PARAM = "api_key";
                 final String SORT_BY_PARAM = "sort_by";
-                final String APIKEY = "b7a9ab2c1f215f3bb13a14d2dca30f56";
+                final String APIKEY = "";
 
                 // Build the URI to pass in for movie information
                 Uri builder = Uri.parse(BASE_URL).buildUpon()

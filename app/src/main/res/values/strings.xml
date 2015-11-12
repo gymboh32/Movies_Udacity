@@ -11,4 +11,9 @@
     <string name="action_sort_by_rating">Sort by: Rating</string>
     <string name="action_sort">Sort By</string>
     <string name="title_activity_detail">Details</string>
+    <string name="title_view_text">Title Text</string>
+    <string name="release_view_text">Release Text</string>
+    <string name="vote_view_text">Vote Text</string>
+    <string name="plot_view_text">Overview Text</string>
+    <string name="poster_description">Poster for Movie</string>
 </resources>

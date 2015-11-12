@@ -28,8 +28,8 @@ public class MovieParser {
 
             // Pull the movieInfo from the Array
             JSONObject movieInfo = movieInfoArray.getJSONObject(i);
-            String posterPath = getPoster(movieInfo);
-            String id = getId(movieInfo);
+            String posterPath = getMovieData(movieInfo, "poster_path");
+            String id = getMovieData(movieInfo, "id");
 
             // Add the poster path to the string array to be returned
             results[i] = new Movie(posterPath, id);
@@ -37,23 +37,32 @@ public class MovieParser {
 
         // Return String array of poster locations
         return results;
-    };
-
-    public static String getPoster(JSONObject movieInfo) throws JSONException {
-
-        // Pull the poster path info from the movieInfo
-        String posterPath = movieInfo.getString("poster_path");
-
-        // Return String array of poster locations
-        return posterPath;
     }
+//
+//    public static String getPoster(JSONObject movieInfo) throws JSONException {
+//
+//        // Pull the poster path info from the movieInfo
+//        String posterPath = movieInfo.getString("poster_path");
+//
+//        // Return String array of poster locations
+//        return posterPath;
+//    }
+//
+//    public static String getId(JSONObject movieInfo) throws JSONException {
+//
+//        // Pull the poster path info from the movieInfo
+//        String movieId = movieInfo.getString("id");
+//
+//        // Return String array of poster locations
+//        return movieId;
+//    }
 
-    public static String getId(JSONObject movieInfo) throws JSONException {
+    public static String getMovieData(JSONObject movieInfo, String category) throws JSONException {
 
-        // Pull the poster path info from the movieInfo
-        String movieId = movieInfo.getString("id");
+        // Pull the data from the movieInfo
+        String movieData = movieInfo.getString(category);
 
-        // Return String array of poster locations
-        return movieId;
+        // Return the String of movie data
+        return movieData;
     }
 }
