@@ -32,12 +32,15 @@ import java.util.Arrays;
 
 /**
  * Created by jahall on 11/1/15.
+ *
+ * Main Fragment to display grid view of movie posters
+ * also makes the api call to get all the information needed
+ *
  */
 public class MainFragment extends Fragment {
 
-    private final String LOG_TAG = MainFragment.class.getSimpleName();
+//    private final String LOG_TAG = MainFragment.class.getSimpleName();
     private MoviePosterAdapter posterAdapter;
-    private View rootView;
     private GridView gridView;
 
     public MainFragment(){ }
@@ -72,13 +75,13 @@ public class MainFragment extends Fragment {
             case R.id.action_sort_by_popular:
                 Toast.makeText(getActivity(), "Sorting by Popularity", Toast.LENGTH_LONG).show();
                 sharedEditor.putString(getString(R.string.pref_sort_key), POPULAR);
-                sharedEditor.commit();
+                sharedEditor.apply();
                 refresh();
                 return true;
             case R.id.action_sort_by_rating:
                 Toast.makeText(getActivity(), "Sorting by Rating", Toast.LENGTH_LONG).show();
                 sharedEditor.putString(getString(R.string.pref_sort_key), RATING);
-                sharedEditor.commit();
+                sharedEditor.apply();
                 refresh();
                 return true;
             default:
@@ -92,10 +95,15 @@ public class MainFragment extends Fragment {
                              Bundle savedInstanceState) {
 
         // Create the rootView of the Fragment
-        rootView = inflater.inflate(R.layout.fragment_main, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
         Movie[] posterPathArray = {
-                new Movie("http://image.tmdb.org/t/p/w500/t90Y3G8UGQp0f0DrP60wRu9gfrH.jpg", "1")
+                new Movie("id",
+                        "title",
+                        "http://image.tmdb.org/t/p/w500/t90Y3G8UGQp0f0DrP60wRu9gfrH.jpg",
+                        "release_date",
+                        "average_rating",
+                        "plot")
         };
 
         gridView = (GridView) rootView.findViewById(R.id.gridview_posters);
@@ -118,9 +126,13 @@ public class MainFragment extends Fragment {
 
                 //create new intent to launch the detail page
                 Intent intent = new Intent(getActivity(), DetailsActivity.class);
-                intent.putExtra(Intent.EXTRA_TEXT, movie.id);
+                intent.putExtra("id", true);
+                intent.putExtra("title", movie.title);
+                intent.putExtra("posterPath", movie.posterPath);
+                intent.putExtra("releaseDate", movie.releaseDate);
+                intent.putExtra("avgRating", movie.avgRating);
+                intent.putExtra("plot", movie.plot);
                 startActivity(intent);
-
             }
         });
     }
@@ -133,10 +145,9 @@ public class MainFragment extends Fragment {
     private String getSortBy() {
         SharedPreferences sharedPref = PreferenceManager
                 .getDefaultSharedPreferences(getActivity());
-        String sortBy = sharedPref.getString(getString(R.string.pref_sort_key),
-                getString(R.string.pref_default_sort));
 
-        return sortBy;
+        return sharedPref.getString(getString(R.string.pref_sort_key),
+                getString(R.string.pref_default_sort));
     }
 
     public class FetchMoviesTask extends AsyncTask<String, Void, Movie[]>{
@@ -189,7 +200,7 @@ public class MainFragment extends Fragment {
                 // Write the reader to the buffer as long as there is something to write
                 String line;
                 while((line = reader.readLine()) != null){
-                    buffer.append(line + "\n");
+                    buffer.append(line).append("\n");
                 }
 
                 // Convert the buffer to String to be sent to the Parser
@@ -199,6 +210,7 @@ public class MainFragment extends Fragment {
                 Log.e(LOG_TAG, "Shit Broke");
             } finally {
                 try {
+                    assert reader != null;
                     reader.close();
                 } catch (final IOException e){
                     Log.e(LOG_TAG, "Couldn't close reader");

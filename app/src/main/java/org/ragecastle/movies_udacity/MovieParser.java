@@ -7,6 +7,9 @@ import org.ragecastle.movies_udacity.adapters.Movie;
 
 /**
  * Created by jahall on 11/1/15.
+ *
+ * Parse the movie data from the api call
+ *
  */
 public class MovieParser {
 
@@ -28,41 +31,23 @@ public class MovieParser {
 
             // Pull the movieInfo from the Array
             JSONObject movieInfo = movieInfoArray.getJSONObject(i);
-            String posterPath = getMovieData(movieInfo, "poster_path");
             String id = getMovieData(movieInfo, "id");
+            String title = getMovieData(movieInfo, "title");
+            String posterPath = getMovieData(movieInfo, "poster_path");
+            String releaseDate = getMovieData(movieInfo, "release_date");
+            String avgRating = getMovieData(movieInfo, "vote_average");
+            String plot = getMovieData(movieInfo, "overview");
 
-            // Add the poster path to the string array to be returned
-            results[i] = new Movie(posterPath, id);
+            // Add the movie to the array
+            results[i] = new Movie(id, title, posterPath, releaseDate, avgRating, plot);
         }
 
         // Return String array of poster locations
         return results;
     }
-//
-//    public static String getPoster(JSONObject movieInfo) throws JSONException {
-//
-//        // Pull the poster path info from the movieInfo
-//        String posterPath = movieInfo.getString("poster_path");
-//
-//        // Return String array of poster locations
-//        return posterPath;
-//    }
-//
-//    public static String getId(JSONObject movieInfo) throws JSONException {
-//
-//        // Pull the poster path info from the movieInfo
-//        String movieId = movieInfo.getString("id");
-//
-//        // Return String array of poster locations
-//        return movieId;
-//    }
 
     public static String getMovieData(JSONObject movieInfo, String category) throws JSONException {
-
-        // Pull the data from the movieInfo
-        String movieData = movieInfo.getString(category);
-
         // Return the String of movie data
-        return movieData;
+        return movieInfo.getString(category);
     }
 }

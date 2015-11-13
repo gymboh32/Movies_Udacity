@@ -16,11 +16,13 @@ import java.util.List;
 
 /**
  * Created by jahall on 11/1/15.
+ *
+ * ArrayAdapter to populate grid view of movie posters
+ *
  */
 public class MoviePosterAdapter extends ArrayAdapter<Movie> {
-    private static final String LOG_TAG = MoviePosterAdapter.class.getSimpleName();
+   // private static final String LOG_TAG = MoviePosterAdapter.class.getSimpleName();
     private ImageView view;
-    private int lastPosition;
     private final String BASE_URL = "http://image.tmdb.org/t/p/w185";
 
     public MoviePosterAdapter(Activity context, List<Movie> movie){
@@ -29,7 +31,6 @@ public class MoviePosterAdapter extends ArrayAdapter<Movie> {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent){
-        lastPosition = position;
         Movie movie = getItem(position);
 
         if(convertView == null){
@@ -39,7 +40,7 @@ public class MoviePosterAdapter extends ArrayAdapter<Movie> {
 
         view = (ImageView) convertView.findViewById(R.id.list_item_poster_image);
 
-        String url = BASE_URL.concat(movie.image);
+        String url = BASE_URL.concat(movie.posterPath);
 
         Picasso.with(getContext()).load(url).fit().centerCrop().into(view);
 
@@ -48,7 +49,7 @@ public class MoviePosterAdapter extends ArrayAdapter<Movie> {
 
     @Override
     public void add(Movie moviePoster) {
-        String url = BASE_URL.concat(moviePoster.image);
+        String url = BASE_URL.concat(moviePoster.posterPath);
         Picasso.with(getContext()).load(url).fit().into(view);
     }
 
