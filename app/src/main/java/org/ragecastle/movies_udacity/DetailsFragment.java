@@ -33,6 +33,7 @@ public class DetailsFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater,
                              ViewGroup container,
                              Bundle savedInstanceState) {
+        // TODO: try butterkife
         String title = "movie_title";
         String url = "";
         String releaseDate = "release_date";
@@ -66,6 +67,7 @@ public class DetailsFragment extends Fragment {
         // Set the new data to the views
         titleView.setText(title);
         // Get the poster and display it
+        // TODO: Add error to display default image
         Picasso.with(getActivity()).load(url).resize(370, 600).into(poster);
         releaseDateView.setText(releaseDate);
         voteAvgView.setText(avgRating);

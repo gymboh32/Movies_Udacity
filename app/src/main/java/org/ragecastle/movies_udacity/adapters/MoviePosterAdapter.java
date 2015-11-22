@@ -42,6 +42,7 @@ public class MoviePosterAdapter extends ArrayAdapter<Movie> {
 
         String url = BASE_URL.concat(movie.posterPath);
 
+        // TODO: add error to display default image
         Picasso.with(getContext()).load(url).fit().centerCrop().into(view);
 
         return convertView;
@@ -50,6 +51,7 @@ public class MoviePosterAdapter extends ArrayAdapter<Movie> {
     @Override
     public void add(Movie moviePoster) {
         String url = BASE_URL.concat(moviePoster.posterPath);
+        // TODO: add error to display default image
         Picasso.with(getContext()).load(url).fit().into(view);
     }
 
