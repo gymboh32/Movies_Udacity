@@ -150,6 +150,7 @@ public class MainFragment extends Fragment {
                 getString(R.string.pref_default_sort));
     }
 
+    // TODO: Refactor into new task
     public class FetchMoviesTask extends AsyncTask<String, Void, Movie[]>{
 
         private final String LOG_TAG = FetchMoviesTask.class.getSimpleName();
@@ -207,11 +208,10 @@ public class MainFragment extends Fragment {
                 result = buffer.toString();
 
             } catch (IOException e){
-                Log.e(LOG_TAG, "Shit Broke");
+                Log.e(LOG_TAG, "Check the API Key");
             } finally {
                 try {
-                    assert reader != null;
-                    reader.close();
+                    if(reader == null) {reader.close();}
                 } catch (final IOException e){
                     Log.e(LOG_TAG, "Couldn't close reader");
                 }

@@ -6,6 +6,7 @@ package org.ragecastle.movies_udacity.adapters;
  *
  */
 public class Movie {
+
     public String posterPath;
     public String id;
     public String title;
