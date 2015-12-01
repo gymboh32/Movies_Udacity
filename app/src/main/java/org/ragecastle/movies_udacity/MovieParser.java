@@ -30,6 +30,8 @@ public class MovieParser {
         for(int i=0;i<movieInfoArray.length();i++){
 
             // Pull the movieInfo from the Array
+            // TODO: Pull the Trailer data
+            // TODO: Pull the Reviews Data
             JSONObject movieInfo = movieInfoArray.getJSONObject(i);
             String id = getMovieData(movieInfo, "id");
             String title = getMovieData(movieInfo, "title");
@@ -39,6 +41,7 @@ public class MovieParser {
             String plot = getMovieData(movieInfo, "overview");
 
             // Add the movie to the array
+            // TODO: Put the Data into a Database instead of this
             results[i] = new Movie(id, title, posterPath, releaseDate, avgRating, plot);
         }
 

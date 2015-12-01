@@ -48,6 +48,7 @@ public class DetailsFragment extends Fragment {
 
         if(intent != null && intent.hasExtra("id")) {
             // Get movie data sent as extra text
+            // TODO: Get ID as extra text and use it to get the rest from the database
             title = intent.getStringExtra("title");
             posterPath = intent.getStringExtra("posterPath");
             releaseDate = "Release Date: \n" + intent.getStringExtra("releaseDate");
@@ -58,6 +59,9 @@ public class DetailsFragment extends Fragment {
             url = BASE_URL.concat(posterPath);
         }
 
+        // TODO: Add Trailers buttons to open youtube app
+        // TODO: Add Reviews to open web browser when clicked on
+        // TODO: Add Favorites Button to add to ne database of favorite movies
         TextView titleView = (TextView) rootView.findViewById(R.id.movie_title_text);
         ImageView poster = (ImageView) rootView.findViewById(R.id.poster_image);
         TextView releaseDateView = (TextView) rootView.findViewById(R.id.movie_release_text);
@@ -68,6 +72,7 @@ public class DetailsFragment extends Fragment {
         titleView.setText(title);
         // Get the poster and display it
         // TODO: Add error to display default image
+        // TODO: Figure out this resize crap
         Picasso.with(getActivity()).load(url).resize(370, 600).into(poster);
         releaseDateView.setText(releaseDate);
         voteAvgView.setText(avgRating);

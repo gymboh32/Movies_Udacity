@@ -7,6 +7,7 @@ package org.ragecastle.movies_udacity.adapters;
  */
 public class Movie {
 
+    // TODO: Remove junk and keep id and posterPath, the rest can be pulled from the database
     public String posterPath;
     public String id;
     public String title;
