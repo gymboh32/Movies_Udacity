@@ -3,6 +3,7 @@ package org.ragecastle.movies_udacity;
 import android.app.Fragment;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
@@ -17,6 +18,7 @@ import android.widget.Toast;
 
 import org.ragecastle.movies_udacity.adapters.Movie;
 import org.ragecastle.movies_udacity.adapters.MoviePosterAdapter;
+import org.ragecastle.movies_udacity.database.MoviesContract;
 
 import java.util.Arrays;
 
@@ -40,7 +42,6 @@ public class MainFragment extends Fragment {
         super.onCreate(savedInstanceState);
         // We has menu options
         setHasOptionsMenu(true);
-        refresh();
     }
 
     @Override
@@ -60,19 +61,16 @@ public class MainFragment extends Fragment {
         switch (item.getItemId()) {
             case R.id.action_refresh:
                 Toast.makeText(getActivity(), "Refreshing", Toast.LENGTH_LONG).show();
-                refresh();
                 return true;
             case R.id.action_sort_by_popular:
                 Toast.makeText(getActivity(), "Sorting by Popularity", Toast.LENGTH_LONG).show();
                 sharedEditor.putString(getString(R.string.pref_sort_key), POPULAR);
                 sharedEditor.apply();
-                refresh();
                 return true;
             case R.id.action_sort_by_rating:
                 Toast.makeText(getActivity(), "Sorting by Rating", Toast.LENGTH_LONG).show();
                 sharedEditor.putString(getString(R.string.pref_sort_key), RATING);
                 sharedEditor.apply();
-                refresh();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -87,58 +85,78 @@ public class MainFragment extends Fragment {
         // Create the rootView of the Fragment
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
-        Movie[] posterPathArray = {
-                new Movie("id",
-                        "title",
-                        "http://image.tmdb.org/t/p/w500/t90Y3G8UGQp0f0DrP60wRu9gfrH.jpg",
-                        "release_date",
-                        "average_rating",
-                        "plot")
-        };
-
         gridView = (GridView) rootView.findViewById(R.id.gridview_posters);
-
-        fillGrid(posterPathArray);
-
+        fillGrid(getImages());
         return rootView;
     }
 
+
+    private Movie[] getImages(){
+        Cursor cursor;
+
+        String[] projection = {
+                MoviesContract.MovieEntry.COLUMN_IMAGE,
+                MoviesContract.MovieEntry.COLUMN_MOVIE_ID};
+
+        cursor = getActivity().getContentResolver().query(
+                MoviesContract.MovieEntry.CONTENT_URI,
+                projection,
+                null,
+                null,
+                null);
+
+        if (cursor.moveToFirst()){
+            Movie[] movieArray = new Movie[cursor.getCount()];
+            do {
+                String movieId =
+                        cursor.getString(cursor.getColumnIndex(MoviesContract.MovieEntry.COLUMN_MOVIE_ID));
+                String image =
+                        cursor.getString(cursor.getColumnIndex(MoviesContract.MovieEntry.COLUMN_IMAGE));
+
+                movieArray[cursor.getPosition()] =
+                        new Movie(
+                                movieId,
+                                "title",
+                                image,
+                                "release_date",
+                                "avg_Rating",
+                                "plot",
+                                "trailer",
+                                "reviews");
+            } while (cursor.moveToNext());
+
+            cursor.close();
+            return movieArray;
+        }
+
+        cursor.close();
+        return new Movie[]{
+                new Movie("id",
+                        "title",
+                        "/t90Y3G8UGQp0f0DrP60wRu9gfrH.jpg",
+                        "release_date",
+                        "average_rating",
+                        "plot",
+                        "trailer",
+                        "reviews")
+        };
+    }
     private void fillGrid(Movie[] moviePosters){
         posterAdapter = new MoviePosterAdapter(getActivity(), Arrays.asList(moviePosters));
         // Populate grid view
         gridView.setAdapter(posterAdapter);
-
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                //get the info for the array list item being clicked
                 Movie movie = posterAdapter.getItem(position);
-
                 //create new intent to launch the detail page
-                // TODO: Just put ID as EXTRA and remove other junk, it will get pulled from database
                 Intent intent = new Intent(getActivity(), DetailsActivity.class);
-                intent.putExtra("id", true);
-                intent.putExtra("title", movie.title);
-                intent.putExtra("posterPath", movie.posterPath);
-                intent.putExtra("releaseDate", movie.releaseDate);
-                intent.putExtra("avgRating", movie.avgRating);
-                intent.putExtra("plot", movie.plot);
+                intent.putExtra("movie_id", movie.id);
                 startActivity(intent);
             }
         });
     }
 
-    public void refresh() {
-        FetchMoviesTask fetchMoviesTask = new FetchMoviesTask();
-        fetchMoviesTask.execute(getSortBy());
-    }
 
-    private String getSortBy() {
-        SharedPreferences sharedPref = PreferenceManager
-                .getDefaultSharedPreferences(getActivity());
-
-        return sharedPref.getString(getString(R.string.pref_sort_key),
-                getString(R.string.pref_default_sort));
-    }
 
 }

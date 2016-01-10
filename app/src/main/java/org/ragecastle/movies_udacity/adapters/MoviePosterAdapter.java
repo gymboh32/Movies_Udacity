@@ -39,7 +39,7 @@ public class MoviePosterAdapter extends ArrayAdapter<Movie> {
 
         view = (ImageView) convertView.findViewById(R.id.list_item_poster_image);
 
-        String url = BASE_URL.concat(movie.posterPath);
+        String url = BASE_URL.concat(movie.image);
 
         // TODO: add error to display default image
         // TODO: Figure out this resize crap
@@ -49,8 +49,8 @@ public class MoviePosterAdapter extends ArrayAdapter<Movie> {
     }
 
     @Override
-    public void add(Movie moviePoster) {
-        String url = BASE_URL.concat(moviePoster.posterPath);
+    public void add(Movie movie) {
+        String url = BASE_URL.concat(movie.image);
         // TODO: add error to display default image
         // TODO: Figure out this resize crap
         Picasso.with(getContext()).load(url).fit().into(view);
