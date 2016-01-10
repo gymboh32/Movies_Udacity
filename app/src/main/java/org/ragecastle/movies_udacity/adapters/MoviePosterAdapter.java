@@ -1,7 +1,6 @@
 package org.ragecastle.movies_udacity.adapters;
 
 import android.app.Activity;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -40,18 +39,20 @@ public class MoviePosterAdapter extends ArrayAdapter<Movie> {
 
         view = (ImageView) convertView.findViewById(R.id.list_item_poster_image);
 
-        String url = BASE_URL.concat(movie.posterPath);
+        String url = BASE_URL.concat(movie.image);
 
         // TODO: add error to display default image
+        // TODO: Figure out this resize crap
         Picasso.with(getContext()).load(url).fit().centerCrop().into(view);
 
         return convertView;
     }
 
     @Override
-    public void add(Movie moviePoster) {
-        String url = BASE_URL.concat(moviePoster.posterPath);
+    public void add(Movie movie) {
+        String url = BASE_URL.concat(movie.image);
         // TODO: add error to display default image
+        // TODO: Figure out this resize crap
         Picasso.with(getContext()).load(url).fit().into(view);
     }
 

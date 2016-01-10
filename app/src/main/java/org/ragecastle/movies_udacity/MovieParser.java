@@ -27,19 +27,22 @@ public class MovieParser {
         results = new Movie [movieInfoArray.length()];
 
         // Loop through the JSONArray and extract the poster location information
-        for(int i=0;i<movieInfoArray.length();i++){
+        for(int i=0;i<movieInfoArray.length(); i++) {
 
             // Pull the movieInfo from the Array
+            // TODO: Pull the Trailer data
+            // TODO: Pull the Reviews Data
             JSONObject movieInfo = movieInfoArray.getJSONObject(i);
             String id = getMovieData(movieInfo, "id");
             String title = getMovieData(movieInfo, "title");
-            String posterPath = getMovieData(movieInfo, "poster_path");
+            String image = getMovieData(movieInfo, "poster_path");
             String releaseDate = getMovieData(movieInfo, "release_date");
             String avgRating = getMovieData(movieInfo, "vote_average");
             String plot = getMovieData(movieInfo, "overview");
 
             // Add the movie to the array
-            results[i] = new Movie(id, title, posterPath, releaseDate, avgRating, plot);
+            // TODO: Put the Data into a Database instead of this
+            results[i] = new Movie (id, title, image, releaseDate, avgRating, plot, null, null);
         }
 
         // Return String array of poster locations

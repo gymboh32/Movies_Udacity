@@ -38,6 +38,11 @@
                 android:value=".MainActivity" />
         </activity>
 
+
+        <provider
+            android:name=".database.MoviesProvider"
+            android:authorities="org.ragecastle.movies_udacity" />
+
     </application>
 
 </manifest>

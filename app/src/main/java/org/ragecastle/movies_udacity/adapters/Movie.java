@@ -7,25 +7,32 @@ package org.ragecastle.movies_udacity.adapters;
  */
 public class Movie {
 
-    public String posterPath;
     public String id;
     public String title;
+    public String image;
     public String releaseDate;
     public String avgRating;
     public String plot;
+    public String trailer;
+    public String reviews;
+
 
     public Movie( String id,
                   String title,
-                  String posterPath,
+                  String image,
                   String releaseDate,
                   String rating,
-                  String overview)
+                  String plot,
+                  String trailer,
+                  String reviews)
     {
         this.id = id;
         this.title = title;
-        this.posterPath = posterPath;
+        this.image = image;
         this.releaseDate = releaseDate;
         this.avgRating = rating;
-        this.plot = overview;
+        this.plot = plot;
+        this.trailer = trailer;
+        this.reviews = reviews;
     }
 }
