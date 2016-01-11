@@ -16,8 +16,6 @@ public class MoviesContract {
 
     public static final Uri BASE_CONTENT_URI = Uri.parse("content://" + CONTENT_AUTHORITY);
 
-    public static final String PATH_BASIC = "movies";
-
     public static final class MovieEntry implements BaseColumns {
         // table name
         public static final String TABLE_MOVIES = "movie";
@@ -45,4 +43,34 @@ public class MoviesContract {
             return ContentUris.withAppendedId(CONTENT_URI, id);
         }
     }
+
+    public static final class TrailersEntry implements BaseColumns {
+
+        // table name
+        public static final String TABLE_TRAILERS = "trailers";
+        // columns
+        public static final String COLUMN_MOVIE_ID = "movie_id";
+        public static final String COLUMN_TRAILER_ID = "trailer_id";
+        public static final String COLUMN_TRAILER_KEY = "key";
+        public static final String COLUMN_NAME = "name";
+        public static final String COLUMN_SITE = "site";
+        public static final String COLUMN_TYPE = "type";
+
+        // create content uri
+        public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon()
+                .appendPath(TABLE_TRAILERS)
+                .build();
+        // create cursor of base type for multiple entries
+        public static final String CONTENT_DIR_TYPE =
+                ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + TABLE_TRAILERS;
+        // create cursor of base type item for single entry
+        public static final String CONTENT_ITEM_TYPE =
+                ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + TABLE_TRAILERS;
+
+        // for building URIs on insertion
+        public static Uri buildTrailersUri(long id) {
+            return ContentUris.withAppendedId(CONTENT_URI, id);
+        }
+    }
+
 }
