@@ -39,6 +39,12 @@ public class DetailsFragment extends Fragment {
                              Bundle savedInstanceState) {
         // TODO: try butterkife
 
+        String title = "title";
+        String image = "image";
+        String release_date = "release date";
+        String avg_rating = "average rating";
+        String plot = "plot";
+
         final String BASE_URL = "http://image.tmdb.org/t/p/w185";
         Intent intent = getActivity().getIntent();
 
@@ -51,11 +57,42 @@ public class DetailsFragment extends Fragment {
         TextView plotView = (TextView) rootView.findViewById(R.id.movie_overview_text);
 
         Movie movie = getMovie(intent.getStringExtra("movie_id"));
-        String title = movie.title;
-        String image = movie.image;
-        String releaseDate = "Release Date: \n" + movie.releaseDate;
-        String avgRating = "Average Rating: \n" + movie.avgRating;
-        String plot = movie.plot;
+        Cursor cursor;
+
+        String[] projection = {
+                MoviesContract.DetailsEntry.COLUMN_MOVIE_ID,
+                MoviesContract.DetailsEntry.COLUMN_TITLE,
+                MoviesContract.DetailsEntry.COLUMN_IMAGE,
+                MoviesContract.DetailsEntry.COLUMN_RELEASE_DATE,
+                MoviesContract.DetailsEntry.COLUMN_AVG_RATING,
+                MoviesContract.DetailsEntry.COLUMN_PLOT};
+
+        cursor = getActivity().getContentResolver().query(
+                MoviesContract.DetailsEntry.CONTENT_URI.buildUpon()
+                        .appendPath(intent.getStringExtra("movie_id"))
+                        .build(),
+                projection,
+                null,
+                null,
+                null);
+
+        if (cursor.moveToFirst()){
+            do {
+                title = cursor.getString(cursor.getColumnIndex(MoviesContract.DetailsEntry.COLUMN_TITLE));
+                image = cursor.getString(cursor.getColumnIndex(MoviesContract.DetailsEntry.COLUMN_IMAGE));
+                release_date = cursor.getString(cursor.getColumnIndex(MoviesContract.DetailsEntry.COLUMN_RELEASE_DATE));
+                avg_rating = cursor.getString(cursor.getColumnIndex(MoviesContract.DetailsEntry.COLUMN_AVG_RATING));
+                plot = cursor.getString(cursor.getColumnIndex(MoviesContract.DetailsEntry.COLUMN_PLOT));
+            } while (cursor.moveToNext());
+            cursor.close();
+        }
+
+
+//        String title = movie.title;
+//        String image = image;
+        release_date = "Release Date: \n" + release_date;
+        avg_rating = "Average Rating: \n" + avg_rating;
+//        String plot = movie.plot;
 
         // Set the url for the poster
         String url = BASE_URL.concat(image);
@@ -64,8 +101,8 @@ public class DetailsFragment extends Fragment {
         // Get the poster and display it
         // TODO: Add error to display default image
         Picasso.with(getActivity()).load(url).resize(370, 600).into(poster);
-        releaseDateView.setText(releaseDate);
-        voteAvgView.setText(avgRating);
+        releaseDateView.setText(release_date);
+        voteAvgView.setText(avg_rating);
         plotView.setText(plot);
         return rootView;
     }
@@ -74,15 +111,15 @@ public class DetailsFragment extends Fragment {
         Cursor cursor;
 
         String[] projection = {
-                MoviesContract.MovieEntry.COLUMN_MOVIE_ID,
-                MoviesContract.MovieEntry.COLUMN_TITLE,
-                MoviesContract.MovieEntry.COLUMN_IMAGE,
-                MoviesContract.MovieEntry.COLUMN_RELEASE_DATE,
-                MoviesContract.MovieEntry.COLUMN_AVG_RATING,
-                MoviesContract.MovieEntry.COLUMN_PLOT};
+                MoviesContract.DetailsEntry.COLUMN_MOVIE_ID,
+                MoviesContract.DetailsEntry.COLUMN_TITLE,
+                MoviesContract.DetailsEntry.COLUMN_IMAGE,
+                MoviesContract.DetailsEntry.COLUMN_RELEASE_DATE,
+                MoviesContract.DetailsEntry.COLUMN_AVG_RATING,
+                MoviesContract.DetailsEntry.COLUMN_PLOT};
 
         cursor = getActivity().getContentResolver().query(
-                MoviesContract.MovieEntry.CONTENT_URI.buildUpon().appendPath(movieId).build(),
+                MoviesContract.DetailsEntry.CONTENT_URI.buildUpon().appendPath(movieId).build(),
                 projection,
                 null,
                 null,
@@ -91,35 +128,20 @@ public class DetailsFragment extends Fragment {
         if (cursor.moveToFirst()){
             Movie movie;
             do {
-                String title = cursor.getString(cursor.getColumnIndex(MoviesContract.MovieEntry.COLUMN_TITLE));
-                String image = cursor.getString(cursor.getColumnIndex(MoviesContract.MovieEntry.COLUMN_IMAGE));
-                String release_date = cursor.getString(cursor.getColumnIndex(MoviesContract.MovieEntry.COLUMN_RELEASE_DATE));
-                String avg_rating = cursor.getString(cursor.getColumnIndex(MoviesContract.MovieEntry.COLUMN_AVG_RATING));
-                String plot = cursor.getString(cursor.getColumnIndex(MoviesContract.MovieEntry.COLUMN_PLOT));
+                String title = cursor.getString(cursor.getColumnIndex(MoviesContract.DetailsEntry.COLUMN_TITLE));
+                String image = cursor.getString(cursor.getColumnIndex(MoviesContract.DetailsEntry.COLUMN_IMAGE));
+                String release_date = cursor.getString(cursor.getColumnIndex(MoviesContract.DetailsEntry.COLUMN_RELEASE_DATE));
+                String avg_rating = cursor.getString(cursor.getColumnIndex(MoviesContract.DetailsEntry.COLUMN_AVG_RATING));
+                String plot = cursor.getString(cursor.getColumnIndex(MoviesContract.DetailsEntry.COLUMN_PLOT));
 
-                movie = new Movie(
-                        movieId,
-                        title,
-                        image,
-                        release_date,
-                        avg_rating,
-                        plot,
-                        null,
-                        null);
+                movie = new Movie(movieId, image);
             } while (cursor.moveToNext());
 
             cursor.close();
             return movie;
         }
 
-        return new Movie("id",
-                "title",
-                "/t90Y3G8UGQp0f0DrP60wRu9gfrH.jpg",
-                "release_date",
-                "average_rating",
-                "plot",
-                "trailer",
-                "review");
+        return new Movie("id", "title");
     }
 }
 

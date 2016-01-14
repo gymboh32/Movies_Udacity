@@ -15,6 +15,13 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+//        getContentResolver().delete(MoviesContract.MovieEntry.CONTENT_URI,
+//                null,
+//                null);
+//        getContentResolver().delete(MoviesContract.DetailsEntry.CONTENT_URI,
+//                null,
+//                null);
+
         if (savedInstanceState == null) {
             getFragmentManager().beginTransaction()
                     .add(R.id.main_container, new MainFragment())

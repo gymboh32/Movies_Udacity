@@ -20,7 +20,9 @@ import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.Toast;
 
+import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 import org.ragecastle.movies_udacity.adapters.Movie;
 import org.ragecastle.movies_udacity.adapters.MoviePosterAdapter;
 import org.ragecastle.movies_udacity.database.MoviesContract;
@@ -48,6 +50,13 @@ public class MainFragment extends Fragment {
     private GridView gridView;
 
     public MainFragment(){ }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        // update the database
+        refresh();
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -79,13 +88,13 @@ public class MainFragment extends Fragment {
                 Toast.makeText(getActivity(), "Sorting by Popularity", Toast.LENGTH_LONG).show();
                 sharedEditor.putString(getString(R.string.pref_sort_key), POPULAR);
                 sharedEditor.apply();
-                refresh();
+                fillGrid();
                 return true;
             case R.id.action_sort_by_rating:
                 Toast.makeText(getActivity(), "Sorting by Rating", Toast.LENGTH_LONG).show();
                 sharedEditor.putString(getString(R.string.pref_sort_key), RATING);
                 sharedEditor.apply();
-                refresh();
+                fillGrid();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -101,63 +110,65 @@ public class MainFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
         gridView = (GridView) rootView.findViewById(R.id.gridview_posters);
-        refresh();
+        fillGrid();
         return rootView;
     }
 
-
-    private Movie[] getImages(){
+    private void fillGrid(){
         Cursor cursor;
+        Movie[] moviePosters;
 
-        String[] projection = {
-                MoviesContract.MovieEntry.COLUMN_IMAGE,
-                MoviesContract.MovieEntry.COLUMN_MOVIE_ID};
+        // get a list of movie ids
+        String [] movieProjection = {MoviesContract.MovieEntry.COLUMN_MOVIE_ID,
+                MoviesContract.MovieEntry.COLUMN_SORT_PARAM};
 
         cursor = getActivity().getContentResolver().query(
-                MoviesContract.MovieEntry.CONTENT_URI,
-                projection,
-                null,
-                null,
+                MoviesContract.MovieEntry.CONTENT_URI.buildUpon()
+                        .appendPath("sort_by")
+                        .build(),
+                movieProjection,
+                MoviesContract.MovieEntry.COLUMN_SORT_PARAM,
+                new String[]{getSortBy()},
                 null);
 
+        String[] movieId = new String[cursor.getCount()];
+
         if (cursor.moveToFirst()){
-            Movie[] movieArray = new Movie[cursor.getCount()];
             do {
-                String movieId =
+                movieId[cursor.getPosition()] =
                         cursor.getString(cursor.getColumnIndex(MoviesContract.MovieEntry.COLUMN_MOVIE_ID));
-                String image =
-                        cursor.getString(cursor.getColumnIndex(MoviesContract.MovieEntry.COLUMN_IMAGE));
 
-                movieArray[cursor.getPosition()] =
-                        new Movie(
-                                movieId,
-                                "title",
-                                image,
-                                "release_date",
-                                "avg_Rating",
-                                "plot",
-                                "trailer",
-                                "reviews");
             } while (cursor.moveToNext());
-
             cursor.close();
-            return movieArray;
         }
 
-        cursor.close();
-        return new Movie[]{
-                new Movie("id",
-                        "title",
-                        "/t90Y3G8UGQp0f0DrP60wRu9gfrH.jpg",
-                        "release_date",
-                        "average_rating",
-                        "plot",
-                        "trailer",
-                        "reviews")
-        };
-    }
+        // query the movies for the images
+        // TODO: query database based on sort by option and build an array of movies
+        String [] detailsProjection = {MoviesContract.DetailsEntry.COLUMN_MOVIE_ID,
+                MoviesContract.DetailsEntry.COLUMN_IMAGE};
 
-    private void fillGrid(Movie[] moviePosters){
+        moviePosters = new Movie [movieId.length];
+
+        for(int i=0;i<movieId.length;i++) {
+
+            cursor = getActivity().getContentResolver().query(
+                    MoviesContract.DetailsEntry.CONTENT_URI.buildUpon().appendPath(movieId[i]).build(),
+                    detailsProjection,
+                    MoviesContract.DetailsEntry.COLUMN_MOVIE_ID,
+                    movieId,
+                    null);
+
+            if (cursor.moveToFirst()) {
+                do {
+
+                    moviePosters[i] = new Movie(
+                            cursor.getString(cursor.getColumnIndex(MoviesContract.DetailsEntry.COLUMN_MOVIE_ID)),
+                            cursor.getString(cursor.getColumnIndex(MoviesContract.DetailsEntry.COLUMN_IMAGE)));
+                } while (cursor.moveToNext());
+                cursor.close();
+            }
+        }
+
         posterAdapter = new MoviePosterAdapter(getActivity(), Arrays.asList(moviePosters));
         // Populate grid view
         gridView.setAdapter(posterAdapter);
@@ -175,46 +186,131 @@ public class MainFragment extends Fragment {
 
     public void refresh() {
         FetchDataTask fetchMoviesTask = new FetchDataTask();
-        fetchMoviesTask.execute(getSortBy());
+        fetchMoviesTask.execute();
+//        fillGrid();
     }
 
     private String getSortBy() {
         SharedPreferences sharedPref = PreferenceManager
                 .getDefaultSharedPreferences(getActivity());
 
-        return sharedPref.getString(getString(R.string.pref_sort_key),
-                getString(R.string.pref_default_sort));
+        return sharedPref.getString(getString(R.string.pref_sort_key), getString(R.string.pref_default_sort));
     }
 
-    public class FetchDataTask extends AsyncTask<String, Void, Movie[]> {
+    public class FetchDataTask extends AsyncTask<Void, Void, Void> {
 
         private final String LOG_TAG = FetchDataTask.class.getSimpleName();
 
         @Override
-        protected Movie[] doInBackground(String... params) {
+        protected Void doInBackground(Void... params) {
+
+            URL popularityURL = null;
+            URL ratingURL = null;
+
+            // constants of api parameters
+            final String BASE_URL = "https://api.themoviedb.org/3/discover/movie";
+            final String API_KEY_PARAM = "api_key";
+            final String SORT_PARAM = "sort_by";
+            final String APIKEY = "";
+            final String POPULAR = "popularity.desc";
+            final String RATING = "vote_average.desc";
+
+            // Build the URI to pass in for movie information
+            Uri builder = Uri.parse(BASE_URL).buildUpon()
+                    .appendQueryParameter(API_KEY_PARAM, APIKEY)
+                    .appendQueryParameter(SORT_PARAM, POPULAR)
+                    .build();
+
+            try{
+                // Create URL to pass in for movie information
+                popularityURL = new URL(builder.toString());
+            } catch (IOException e) {
+                Log.e(LOG_TAG, "Check the API Key");
+            }
+
+            String moviesByPopularity = getResults(popularityURL);
+
+            try {
+                putToDB(moviesByPopularity, POPULAR);
+            } catch (JSONException e) {
+                Log.e(LOG_TAG, e.getMessage(), e);
+            }
+
+            // Build the URI to pass in for movie information
+            builder = Uri.parse(BASE_URL).buildUpon()
+                    .appendQueryParameter(API_KEY_PARAM, APIKEY)
+                    .appendQueryParameter(SORT_PARAM, RATING)
+                    .build();
+
+            try{
+                // Create URL to pass in for movie information
+                ratingURL = new URL(builder.toString());
+            } catch (IOException e) {
+                Log.e(LOG_TAG, "Check the API Key");
+            }
+
+            String moviesByRating = getResults(ratingURL);
+
+            try {
+                putToDB(moviesByRating, RATING);
+            } catch (JSONException e) {
+                Log.e(LOG_TAG, e.getMessage(), e);
+            }
+            return null;
+        }
+
+        private void putToDB(String apiResult, String sortBy) throws JSONException {
+            ContentValues movieValues;
+            ContentValues detailsValues;
+
+            // Make the movieData parameter a JSONObject
+            JSONObject jsonMovieData = new JSONObject(apiResult);
+
+            // Extract the list of results from movieData
+            JSONArray movieInfoArray = jsonMovieData.getJSONArray("results");
+
+            // Loop through the JSONArray and extract the poster location information
+            for (int i = 0; i < movieInfoArray.length(); i++) {
+
+                // Pull the movieInfo from the Array
+                // TODO: Pull the Trailer data
+                // TODO: Pull the Reviews Data
+                JSONObject movieInfo = movieInfoArray.getJSONObject(i);
+
+                movieValues = new ContentValues();
+                movieValues.put(MoviesContract.MovieEntry.COLUMN_MOVIE_ID, movieInfo.getString("id"));
+                movieValues.put(MoviesContract.MovieEntry.COLUMN_SORT_PARAM, sortBy);
+
+                detailsValues = new ContentValues();
+                detailsValues.put(MoviesContract.DetailsEntry.COLUMN_MOVIE_ID,
+                        movieInfo.getString("id"));
+                detailsValues.put(MoviesContract.DetailsEntry.COLUMN_TITLE,
+                        movieInfo.getString("title"));
+                detailsValues.put(MoviesContract.DetailsEntry.COLUMN_IMAGE,
+                        movieInfo.getString("poster_path"));
+                detailsValues.put(MoviesContract.DetailsEntry.COLUMN_RELEASE_DATE,
+                        movieInfo.getString("release_date"));
+                detailsValues.put(MoviesContract.DetailsEntry.COLUMN_AVG_RATING,
+                        movieInfo.getString("vote_average"));
+                detailsValues.put(MoviesContract.DetailsEntry.COLUMN_PLOT,
+                        movieInfo.getString("overview"));
+
+                // add the movie to the database
+                getActivity().getContentResolver().insert(MoviesContract.MovieEntry.CONTENT_URI,
+                        movieValues);
+                getActivity().getContentResolver().insert(MoviesContract.DetailsEntry.CONTENT_URI,
+                        detailsValues);
+            }
+        }
+
+        private String getResults(URL url){
 
             HttpURLConnection connection;
             BufferedReader reader = null;
             InputStream inputStream;
             StringBuffer buffer;
-            String result = null;
 
-            try {
-                // constants of api parameters
-                final String BASE_URL = "https://api.themoviedb.org/3/discover/movie";
-                final String API_KEY_PARAM = "api_key";
-                final String SORT_PARAM = "sort_by";
-                final String APIKEY = "";
-
-                // Build the URI to pass in for movie information
-                Uri builder = Uri.parse(BASE_URL).buildUpon()
-                        .appendQueryParameter(API_KEY_PARAM, APIKEY)
-                        .appendQueryParameter(SORT_PARAM, params[0])
-                        .build();
-
-                // Create URL to pass in for movie information
-                URL url = new URL(builder.toString());
-
+            try{
                 // Open the connection for the HTTP request
                 connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestMethod("GET");
@@ -240,7 +336,7 @@ public class MainFragment extends Fragment {
                 }
 
                 // Convert the buffer to String to be sent to the Parser
-                result = buffer.toString();
+                return buffer.toString();
 
             } catch (IOException e) {
                 Log.e(LOG_TAG, "Check the API Key");
@@ -253,58 +349,14 @@ public class MainFragment extends Fragment {
                     Log.e(LOG_TAG, "Couldn't close reader");
                 }
             }
-
-            try {
-                return MovieParser.getMovieInfo(result);
-            } catch (JSONException e) {
-                Log.e(LOG_TAG, e.getMessage(), e);
-            }
-
             return null;
         }
 
-        @Override
-        protected void onPostExecute(Movie[] moviesArray) {
-
-            fillGrid(moviesArray);
-            updateDB(moviesArray);
-        }
+//        @Override
+//        protected void onPostExecute(Movie[] moviesArray) {
+//
+//            fillGrid(moviesArray);
+//            updateDB(moviesArray);
+//        }
     }
-
-    public void updateDB(Movie[] moviesArray){
-        ContentValues movieValues;
-
-        // Loop through static array of Flavors, add each to an instance of ContentValues
-        // in the array of ContentValues
-        for (Movie aMoviesArray : moviesArray) {
-            movieValues = new ContentValues();
-            movieValues.put(MoviesContract.MovieEntry.COLUMN_MOVIE_ID, aMoviesArray.id);
-            movieValues.put(MoviesContract.MovieEntry.COLUMN_TITLE, aMoviesArray.title);
-            movieValues.put(MoviesContract.MovieEntry.COLUMN_IMAGE, aMoviesArray.image);
-            movieValues.put(MoviesContract.MovieEntry.COLUMN_RELEASE_DATE, aMoviesArray.releaseDate);
-            movieValues.put(MoviesContract.MovieEntry.COLUMN_AVG_RATING, aMoviesArray.avgRating);
-            movieValues.put(MoviesContract.MovieEntry.COLUMN_PLOT, aMoviesArray.plot);
-
-            // array to filter columns being queried
-            String[] projection = {MoviesContract.MovieEntry.COLUMN_MOVIE_ID};
-
-            Cursor cursor = getActivity().getContentResolver().query(
-                    MoviesContract.MovieEntry.CONTENT_URI.buildUpon()
-                            .appendPath(aMoviesArray.id)
-                            .build(),
-                    projection,
-                    null,
-                    null,
-                    null);
-
-            // Check if the value is already in the database before adding it
-            if (cursor.getCount() == 0) {
-                Log.i(LOG_TAG, "Added " + aMoviesArray.title);
-                // add the movie to the database
-                getActivity().getContentResolver().insert(MoviesContract.MovieEntry.CONTENT_URI, movieValues);
-            }
-            cursor.close();
-        }
-    }
-
 }

@@ -22,6 +22,9 @@ public class MoviesProvider extends ContentProvider {
 
     static final int MOVIE = 100;
     static final int MOVIE_WITH_ID = 101;
+    static final int MOVIE_SORT_PARAM = 102;
+    static final int DETAILS = 200;
+    static final int DETAILS_WITH_ID = 201;
 
     private static UriMatcher buildUriMatcher(){
         // Build a UriMatcher by adding a specific code to return based on a match
@@ -32,6 +35,9 @@ public class MoviesProvider extends ContentProvider {
         // add a code for each type of URI you want
         matcher.addURI(authority, MoviesContract.MovieEntry.TABLE_MOVIES, MOVIE);
         matcher.addURI(authority, MoviesContract.MovieEntry.TABLE_MOVIES + "/#", MOVIE_WITH_ID);
+        matcher.addURI(authority, MoviesContract.MovieEntry.TABLE_MOVIES + "/sort_by", MOVIE_SORT_PARAM);
+        matcher.addURI(authority, MoviesContract.DetailsEntry.TABLE_DETAILS, DETAILS);
+        matcher.addURI(authority, MoviesContract.DetailsEntry.TABLE_DETAILS + "/#", DETAILS_WITH_ID);
 
         return matcher;
     }
@@ -51,7 +57,7 @@ public class MoviesProvider extends ContentProvider {
         Cursor retCursor;
 
         switch(uriMatcher.match(uri)){
-            // All Flavors selected
+            // All Movies selected
             case MOVIE:{
                 retCursor = moviesDBHelper.getWritableDatabase().query(
                         MoviesContract.MovieEntry.TABLE_MOVIES,
@@ -63,12 +69,47 @@ public class MoviesProvider extends ContentProvider {
                         sortOrder);
                 return retCursor;
             }
-            // Individual flavor based on Id selected
+            // Individual movie based on Id selected
             case MOVIE_WITH_ID:{
                 retCursor = moviesDBHelper.getReadableDatabase().query(
                         MoviesContract.MovieEntry.TABLE_MOVIES,
                         projection,
                         MoviesContract.MovieEntry.COLUMN_MOVIE_ID + " = ?",
+                        new String[] {String.valueOf(ContentUris.parseId(uri))},
+                        null,
+                        null,
+                        sortOrder);
+                return retCursor;
+            }
+            // Individual movies based on sort parameter
+            case MOVIE_SORT_PARAM:{
+                retCursor = moviesDBHelper.getReadableDatabase().query(
+                        MoviesContract.MovieEntry.TABLE_MOVIES,
+                        projection,
+                        MoviesContract.MovieEntry.COLUMN_SORT_PARAM + " = ?",
+                        selectionArgs,
+                        null,
+                        null,
+                        sortOrder);
+                return retCursor;
+            }
+            case DETAILS:{
+                retCursor = moviesDBHelper.getWritableDatabase().query(
+                        MoviesContract.DetailsEntry.TABLE_DETAILS,
+                        projection,
+                        selection,
+                        selectionArgs,
+                        null,
+                        null,
+                        sortOrder);
+                return retCursor;
+            }
+            // Individual movie based on Id selected
+            case DETAILS_WITH_ID:{
+                retCursor = moviesDBHelper.getReadableDatabase().query(
+                        MoviesContract.DetailsEntry.TABLE_DETAILS,
+                        projection,
+                        MoviesContract.DetailsEntry.COLUMN_MOVIE_ID + " = ?",
                         new String[] {String.valueOf(ContentUris.parseId(uri))},
                         null,
                         null,
@@ -84,7 +125,22 @@ public class MoviesProvider extends ContentProvider {
 
     @Override
     public String getType(Uri uri) {
-        return null;
+        final int match = uriMatcher.match(uri);
+
+        switch (match){
+            case MOVIE:{
+                return MoviesContract.MovieEntry.CONTENT_DIR_TYPE;
+            }
+            case MOVIE_WITH_ID:{
+                return MoviesContract.MovieEntry.CONTENT_ITEM_TYPE;
+            }
+            case MOVIE_SORT_PARAM:{
+                return MoviesContract.MovieEntry.CONTENT_ITEM_TYPE;
+            }
+            default:{
+                throw new UnsupportedOperationException("Unknown uri: " + uri);
+            }
+        }
     }
 
     @Override
@@ -102,10 +158,18 @@ public class MoviesProvider extends ContentProvider {
                 }
                 break;
             }
-
+            case DETAILS: {
+                long _id = db.insert(MoviesContract.DetailsEntry.TABLE_DETAILS, null, values);
+                // insert unless it is already contained in the database
+                if (_id > 0) {
+                    returnUri = MoviesContract.DetailsEntry.buildMoviesUri(_id);
+                } else {
+                    throw new android.database.SQLException("Failed to insert row into: " + uri);
+                }
+                break;
+            }
             default: {
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
-
             }
         }
         getContext().getContentResolver().notifyChange(uri, null);
@@ -127,12 +191,26 @@ public class MoviesProvider extends ContentProvider {
                     break;
                 case MOVIE_WITH_ID:
                     numDeleted = db.delete(MoviesContract.MovieEntry.TABLE_MOVIES,
-                            MoviesContract.MovieEntry._ID + " = ?",
+                            MoviesContract.MovieEntry.COLUMN_MOVIE_ID + " = ?",
                             new String[]{String.valueOf(ContentUris.parseId(uri))});
                     // reset _ID
                     db.execSQL("DELETE FROM SQLITE_SEQUENCE WHERE NAME = '" +
                             MoviesContract.MovieEntry.TABLE_MOVIES + "'");
-
+                    break;
+                case MOVIE_SORT_PARAM:
+                    numDeleted = db.delete(MoviesContract.MovieEntry.TABLE_MOVIES,
+                            MoviesContract.MovieEntry.COLUMN_SORT_PARAM + " = ? ",
+                            new String[]{String.valueOf(ContentUris.parseId(uri))});
+                    // reset _ID
+                    db.execSQL("DELETE FROM SQLITE_SEQUENCE WHERE NAME = '" +
+                            MoviesContract.MovieEntry.TABLE_MOVIES + "'");
+                    break;
+                case DETAILS:
+                    numDeleted = db.delete(
+                            MoviesContract.DetailsEntry.TABLE_DETAILS, selection, selectionArgs);
+                    // reset _ID
+                    db.execSQL("DELETE FROM SQLITE_SEQUENCE WHERE NAME = '" +
+                            MoviesContract.DetailsEntry.TABLE_DETAILS + "'");
                     break;
                 default:
                     throw new UnsupportedOperationException("Unknown uri: " + uri);
@@ -164,7 +242,14 @@ public class MoviesProvider extends ContentProvider {
             case MOVIE_WITH_ID: {
                 numUpdated = db.update(MoviesContract.MovieEntry.TABLE_MOVIES,
                         values,
-                        MoviesContract.MovieEntry._ID + " = ?",
+                        MoviesContract.MovieEntry.COLUMN_MOVIE_ID + " = ?",
+                        new String[] {String.valueOf(ContentUris.parseId(uri))});
+                break;
+            }
+            case MOVIE_SORT_PARAM: {
+                numUpdated = db.update(MoviesContract.MovieEntry.TABLE_MOVIES,
+                        values,
+                        MoviesContract.MovieEntry.COLUMN_SORT_PARAM + " = ?",
                         new String[] {String.valueOf(ContentUris.parseId(uri))});
                 break;
             }
