@@ -143,7 +143,6 @@ public class MainFragment extends Fragment {
         }
 
         // query the movies for the images
-        // TODO: query database based on sort by option and build an array of movies
         String [] detailsProjection = {MoviesContract.DetailsEntry.COLUMN_MOVIE_ID,
                 MoviesContract.DetailsEntry.COLUMN_IMAGE};
 
@@ -204,8 +203,7 @@ public class MainFragment extends Fragment {
         @Override
         protected Void doInBackground(Void... params) {
 
-            URL popularityURL = null;
-            URL ratingURL = null;
+            URL url = null;
 
             // constants of api parameters
             final String BASE_URL = "https://api.themoviedb.org/3";
@@ -228,12 +226,12 @@ public class MainFragment extends Fragment {
 
             try{
                 // Create URL to pass in for movie information
-                popularityURL = new URL(builder.toString());
+                url = new URL(builder.toString());
             } catch (IOException e) {
                 Log.e(LOG_TAG, "Check the API Key");
             }
 
-            String moviesByPopularity = getResults(popularityURL);
+            String moviesByPopularity = getResults(url);
 
             try {
                 putDetailsToDB(moviesByPopularity, POPULAR);
@@ -254,12 +252,12 @@ public class MainFragment extends Fragment {
 
             try{
                 // Create URL to pass in for movie information
-                ratingURL = new URL(builder.toString());
+                url = new URL(builder.toString());
             } catch (IOException e) {
                 Log.e(LOG_TAG, "Check the API Key");
             }
 
-            String moviesByRating = getResults(ratingURL);
+            String moviesByRating = getResults(url);
 
             try {
                 putDetailsToDB(moviesByRating, RATING);
@@ -267,7 +265,7 @@ public class MainFragment extends Fragment {
                 Log.e(LOG_TAG, e.getMessage(), e);
             }
 
-            // Get Movie Trailers
+            // Get List of Movies
             ///////////////////////
 
             Cursor cursor;
@@ -294,27 +292,56 @@ public class MainFragment extends Fragment {
                 cursor.close();
             }
 
-            for (int i=0;i<movieId.length;i++) {
+            for (String aMovieId : movieId) {
+
+                // Get Trailers
+                /////////////////
 
                 // Build the URI to pass in for movie information
                 builder = Uri.parse(BASE_URL).buildUpon()
                         .appendPath("movie")
-                        .appendPath(movieId[i])
+                        .appendPath(aMovieId)
                         .appendPath("videos")
                         .appendQueryParameter(API_KEY_PARAM, APIKEY)
                         .build();
 
                 try {
                     // Create URL to pass in for movie information
-                    popularityURL = new URL(builder.toString());
+                    url = new URL(builder.toString());
                 } catch (IOException e) {
                     Log.e(LOG_TAG, "Check the API Key");
                 }
 
-                String moviesTrailers = getResults(popularityURL);
+                String moviesTrailers = getResults(url);
 
                 try {
-                    putTrailersToDB(moviesTrailers, movieId[i]);
+                    putTrailersToDB(moviesTrailers, aMovieId);
+                } catch (JSONException e) {
+                    Log.e(LOG_TAG, e.getMessage(), e);
+                }
+
+                // Get Reviews
+                ////////////////
+
+                // Build the URI to pass in for movie information
+                builder = Uri.parse(BASE_URL).buildUpon()
+                        .appendPath("movie")
+                        .appendPath(aMovieId)
+                        .appendPath("reviews")
+                        .appendQueryParameter(API_KEY_PARAM, APIKEY)
+                        .build();
+
+                try {
+                    // Create URL to pass in for movie information
+                    url = new URL(builder.toString());
+                } catch (IOException e) {
+                    Log.e(LOG_TAG, "Check the API Key");
+                }
+
+                String moviesReviews = getResults(url);
+
+                try {
+                    putReviewsToDB(moviesReviews, aMovieId);
                 } catch (JSONException e) {
                     Log.e(LOG_TAG, e.getMessage(), e);
                 }
@@ -336,8 +363,6 @@ public class MainFragment extends Fragment {
             for (int i = 0; i < movieInfoArray.length(); i++) {
 
                 // Pull the movieInfo from the Array
-                // TODO: Pull the Trailer data
-                // TODO: Pull the Reviews Data
                 JSONObject movieInfo = movieInfoArray.getJSONObject(i);
 
                 movieValues = new ContentValues();
@@ -379,7 +404,6 @@ public class MainFragment extends Fragment {
             for (int i = 0; i < movieInfoArray.length(); i++) {
 
                 // Pull the movieInfo from the Array
-                // TODO: Pull the Reviews Data
                 JSONObject movieInfo = movieInfoArray.getJSONObject(i);
 
                 trailerValues = new ContentValues();
@@ -397,6 +421,40 @@ public class MainFragment extends Fragment {
                 // add the movie to the database
                 getActivity().getContentResolver().insert(MoviesContract.TrailersEntry.CONTENT_URI,
                         trailerValues);
+            }
+        }
+
+        private void putReviewsToDB(String apiResult, String movieId) throws JSONException {
+            ContentValues reviewValues;
+
+            // Make the movieData parameter a JSONObject
+            JSONObject jsonMovieData = new JSONObject(apiResult);
+
+            // Extract the list of results from movieData
+            JSONArray movieInfoArray = jsonMovieData.getJSONArray("results");
+
+
+            // Loop through the JSONArray and extract the poster location information
+            for (int i = 0; i < movieInfoArray.length(); i++) {
+
+                // Pull the movieInfo from the Array
+                JSONObject movieInfo = movieInfoArray.getJSONObject(i);
+
+                reviewValues = new ContentValues();
+                reviewValues.put(MoviesContract.TrailersEntry.COLUMN_MOVIE_ID,
+                        movieId);
+                reviewValues.put(MoviesContract.ReviewsEntry.COLUMN_REVIEW_ID,
+                        movieInfo.getString("id"));
+                reviewValues.put(MoviesContract.ReviewsEntry.COLUMN_AUTHOR,
+                        movieInfo.getString("author"));
+                reviewValues.put(MoviesContract.ReviewsEntry.COLUMN_CONTENT,
+                        movieInfo.getString("content"));
+                reviewValues.put(MoviesContract.ReviewsEntry.COLUMN_URL,
+                        movieInfo.getString("url"));
+
+                // add the movie to the database
+                getActivity().getContentResolver().insert(MoviesContract.ReviewsEntry.CONTENT_URI,
+                        reviewValues);
             }
         }
 

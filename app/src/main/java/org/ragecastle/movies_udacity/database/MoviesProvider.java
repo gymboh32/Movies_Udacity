@@ -27,6 +27,8 @@ public class MoviesProvider extends ContentProvider {
     static final int DETAILS_WITH_ID = 201;
     static final int TRAILERS = 300;
     static final int TRAILERS_WITH_ID = 301;
+    static final int REVIEWS = 400;
+    static final int REVIEWS_WITH_ID = 401;
 
     private static UriMatcher buildUriMatcher(){
         // Build a UriMatcher by adding a specific code to return based on a match
@@ -42,6 +44,8 @@ public class MoviesProvider extends ContentProvider {
         matcher.addURI(authority, MoviesContract.DetailsEntry.TABLE_DETAILS + "/#", DETAILS_WITH_ID);
         matcher.addURI(authority, MoviesContract.TrailersEntry.TABLE_TRAILERS, TRAILERS);
         matcher.addURI(authority, MoviesContract.TrailersEntry.TABLE_TRAILERS + "/#", TRAILERS_WITH_ID);
+        matcher.addURI(authority, MoviesContract.ReviewsEntry.TABLE_REVIEWS, REVIEWS);
+        matcher.addURI(authority, MoviesContract.ReviewsEntry.TABLE_REVIEWS + "/#", REVIEWS_WITH_ID);
 
         return matcher;
     }
@@ -132,6 +136,18 @@ public class MoviesProvider extends ContentProvider {
                         sortOrder);
                 return retCursor;
             }
+            // Individual movie based on Id selected
+            case REVIEWS_WITH_ID:{
+                retCursor = moviesDBHelper.getReadableDatabase().query(
+                        MoviesContract.ReviewsEntry.TABLE_REVIEWS,
+                        projection,
+                        MoviesContract.ReviewsEntry.COLUMN_MOVIE_ID + " = ?",
+                        new String[] {String.valueOf(ContentUris.parseId(uri))},
+                        null,
+                        null,
+                        sortOrder);
+                return retCursor;
+            }
             default:{
                 // By default, we assume a bad URI
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
@@ -194,6 +210,16 @@ public class MoviesProvider extends ContentProvider {
                 }
                 break;
             }
+            case REVIEWS: {
+                long _id = db.insert(MoviesContract.ReviewsEntry.TABLE_REVIEWS, null, values);
+                // insert unless it is already contained in the database
+                if (_id > 0) {
+                    returnUri = MoviesContract.ReviewsEntry.buildReviewsUri(_id);
+                } else {
+                    throw new android.database.SQLException("Failed to insert row into: " + uri);
+                }
+                break;
+            }
             default: {
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
             }
@@ -246,12 +272,9 @@ public class MoviesProvider extends ContentProvider {
     }
 
     @Override
-    public int update(Uri uri,
-                      ContentValues values,
-                      String selection,
-                      String[] selectionArgs) {
+    public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
         final SQLiteDatabase db = moviesDBHelper.getWritableDatabase();
-        int numUpdated = 0;
+        int numUpdated;
 
         if (values == null){
             throw new IllegalArgumentException("Cannot have null content values");

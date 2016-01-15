@@ -118,7 +118,7 @@ public class MoviesContract {
                 ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + TABLE_REVIEWS;
 
         // for building URIs on insertion
-        public static Uri buildTrailersUri(long id) {
+        public static Uri buildReviewsUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);
         }
     }

@@ -13,7 +13,7 @@ import android.util.Log;
 public class MoviesDBHelper extends SQLiteOpenHelper {
     public static final String LOG_TAG = MoviesDBHelper.class.getSimpleName();
 
-    private static final int DATABASE_VERSION = 5;
+    private static final int DATABASE_VERSION = 6;
 
     static final String DATABASE_NAME = "movies.db";
 
@@ -53,9 +53,21 @@ public class MoviesDBHelper extends SQLiteOpenHelper {
                 MoviesContract.MovieEntry.TABLE_MOVIES + " (" + MoviesContract.MovieEntry.COLUMN_MOVIE_ID +
                 "));";
 
+        final String SQL_CREATE_REVIEWS_TABLE = "CREATE TABLE " +
+                MoviesContract.ReviewsEntry.TABLE_REVIEWS + " (" +
+                MoviesContract.ReviewsEntry.COLUMN_MOVIE_ID + " TEXT NOT NULL, " +
+                MoviesContract.ReviewsEntry.COLUMN_REVIEW_ID + " TEXT NOT NULL, " +
+                MoviesContract.ReviewsEntry.COLUMN_AUTHOR + " TEXT NOT NULL, " +
+                MoviesContract.ReviewsEntry.COLUMN_CONTENT + " TEXT NOT NULL, " +
+                MoviesContract.ReviewsEntry.COLUMN_URL + " TEXT NOT NULL, " +
+                " FOREIGN KEY (" + MoviesContract.ReviewsEntry.COLUMN_MOVIE_ID + ") REFERENCES " +
+                MoviesContract.MovieEntry.TABLE_MOVIES + " (" + MoviesContract.MovieEntry.COLUMN_MOVIE_ID +
+                "));";
+
         db.execSQL(SQL_CREATE_MOVIE_TABLE);
         db.execSQL(SQL_CREATE_DETAILS_TABLE);
         db.execSQL(SQL_CREATE_TRAILERS_TABLE);
+        db.execSQL(SQL_CREATE_REVIEWS_TABLE);
     }
 
     @Override
@@ -66,6 +78,7 @@ public class MoviesDBHelper extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS " + MoviesContract.MovieEntry.TABLE_MOVIES);
         db.execSQL("DROP TABLE IF EXISTS " + MoviesContract.DetailsEntry.TABLE_DETAILS);
         db.execSQL("DROP TABLE IF EXISTS " + MoviesContract.TrailersEntry.TABLE_TRAILERS);
+        db.execSQL("DROP TABLE IF EXISTS " + MoviesContract.ReviewsEntry.TABLE_REVIEWS);
 
         onCreate(db);
     }
