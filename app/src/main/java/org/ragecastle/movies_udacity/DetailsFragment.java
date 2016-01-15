@@ -44,6 +44,7 @@ public class DetailsFragment extends Fragment {
         String release_date = "release date";
         String avg_rating = "average rating";
         String plot = "plot";
+        String review = "review";
 
         final String BASE_URL = "http://image.tmdb.org/t/p/w185";
         Intent intent = getActivity().getIntent();
@@ -55,8 +56,8 @@ public class DetailsFragment extends Fragment {
         TextView releaseDateView = (TextView) rootView.findViewById(R.id.movie_release_text);
         TextView voteAvgView = (TextView) rootView.findViewById(R.id.movie_vote_text);
         TextView plotView = (TextView) rootView.findViewById(R.id.movie_overview_text);
+        TextView reviewView = (TextView) rootView.findViewById(R.id.movie_review_text);
 
-        Movie movie = getMovie(intent.getStringExtra("movie_id"));
         Cursor cursor;
 
         String[] projection = {
@@ -84,15 +85,30 @@ public class DetailsFragment extends Fragment {
                 avg_rating = cursor.getString(cursor.getColumnIndex(MoviesContract.DetailsEntry.COLUMN_AVG_RATING));
                 plot = cursor.getString(cursor.getColumnIndex(MoviesContract.DetailsEntry.COLUMN_PLOT));
             } while (cursor.moveToNext());
-            cursor.close();
         }
+        cursor.close();
 
+        String[] reviewProjection = {MoviesContract.ReviewsEntry.COLUMN_MOVIE_ID,
+                MoviesContract.ReviewsEntry.COLUMN_CONTENT};
 
-//        String title = movie.title;
-//        String image = image;
+        cursor = getActivity().getContentResolver().query(
+                MoviesContract.ReviewsEntry.CONTENT_URI.buildUpon()
+                        .appendPath(intent.getStringExtra("movie_id"))
+                        .build(),
+                reviewProjection,
+                null,
+                null,
+                null);
+
+        if (cursor.moveToFirst()){
+            do {
+                review = cursor.getString(cursor.getColumnIndex(MoviesContract.ReviewsEntry.COLUMN_CONTENT));
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+
         release_date = "Release Date: \n" + release_date;
         avg_rating = "Average Rating: \n" + avg_rating;
-//        String plot = movie.plot;
 
         // Set the url for the poster
         String url = BASE_URL.concat(image);
@@ -104,6 +120,7 @@ public class DetailsFragment extends Fragment {
         releaseDateView.setText(release_date);
         voteAvgView.setText(avg_rating);
         plotView.setText(plot);
+        reviewView.setText(review);
         return rootView;
     }
 

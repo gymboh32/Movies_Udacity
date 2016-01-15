@@ -50,6 +50,7 @@ public class MoviesContract {
         public static final String COLUMN_RELEASE_DATE = "release_date";
         public static final String COLUMN_AVG_RATING = "avg_rating";
         public static final String COLUMN_PLOT = "plot";
+        public static final String COLUMN_FAVORITE = "favorite";
 
         // create content uri
         public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon()

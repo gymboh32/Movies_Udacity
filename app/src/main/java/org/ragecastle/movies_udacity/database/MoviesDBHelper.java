@@ -13,7 +13,7 @@ import android.util.Log;
 public class MoviesDBHelper extends SQLiteOpenHelper {
     public static final String LOG_TAG = MoviesDBHelper.class.getSimpleName();
 
-    private static final int DATABASE_VERSION = 6;
+    private static final int DATABASE_VERSION = 8;
 
     static final String DATABASE_NAME = "movies.db";
 
@@ -38,6 +38,7 @@ public class MoviesDBHelper extends SQLiteOpenHelper {
                 MoviesContract.DetailsEntry.COLUMN_RELEASE_DATE + " TEXT NOT NULL, " +
                 MoviesContract.DetailsEntry.COLUMN_AVG_RATING + " TEXT NOT NULL, " +
                 MoviesContract.DetailsEntry.COLUMN_PLOT + " TEXT NOT NULL, " +
+                MoviesContract.DetailsEntry.COLUMN_FAVORITE + " BOOLEAN, " +
                 " FOREIGN KEY (" + MoviesContract.DetailsEntry.COLUMN_MOVIE_ID + ") REFERENCES " +
                 MoviesContract.MovieEntry.TABLE_MOVIES + " (" + MoviesContract.MovieEntry.COLUMN_MOVIE_ID +
                 "), UNIQUE (" + MoviesContract.DetailsEntry.COLUMN_MOVIE_ID + ") ON CONFLICT REPLACE);";

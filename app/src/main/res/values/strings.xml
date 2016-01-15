@@ -16,4 +16,5 @@
     <string name="vote_view_text">Vote Text</string>
     <string name="plot_view_text">Overview Text</string>
     <string name="poster_description">Poster for Movie</string>
+    <string name="review_view_text">reviews</string>
 </resources>

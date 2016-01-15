@@ -164,8 +164,8 @@ public class MainFragment extends Fragment {
                             cursor.getString(cursor.getColumnIndex(MoviesContract.DetailsEntry.COLUMN_MOVIE_ID)),
                             cursor.getString(cursor.getColumnIndex(MoviesContract.DetailsEntry.COLUMN_IMAGE)));
                 } while (cursor.moveToNext());
-                cursor.close();
             }
+            cursor.close();
         }
 
         posterAdapter = new MoviePosterAdapter(getActivity(), Arrays.asList(moviePosters));
@@ -289,8 +289,8 @@ public class MainFragment extends Fragment {
                             cursor.getString(cursor.getColumnIndex(MoviesContract.MovieEntry.COLUMN_MOVIE_ID));
 
                 } while (cursor.moveToNext());
-                cursor.close();
             }
+            cursor.close();
 
             for (String aMovieId : movieId) {
 
@@ -458,7 +458,7 @@ public class MainFragment extends Fragment {
             }
         }
 
-        private String getResults(URL url){
+        public String getResults(URL url){
 
             HttpURLConnection connection;
             BufferedReader reader = null;
