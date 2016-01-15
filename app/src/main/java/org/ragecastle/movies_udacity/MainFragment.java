@@ -208,15 +208,20 @@ public class MainFragment extends Fragment {
             URL ratingURL = null;
 
             // constants of api parameters
-            final String BASE_URL = "https://api.themoviedb.org/3/discover/movie";
+            final String BASE_URL = "https://api.themoviedb.org/3";
             final String API_KEY_PARAM = "api_key";
             final String SORT_PARAM = "sort_by";
             final String APIKEY = "";
             final String POPULAR = "popularity.desc";
             final String RATING = "vote_average.desc";
 
+            // Get Popular movies
+            ///////////////////////
+
             // Build the URI to pass in for movie information
             Uri builder = Uri.parse(BASE_URL).buildUpon()
+                    .appendPath("discover")
+                    .appendPath("movie")
                     .appendQueryParameter(API_KEY_PARAM, APIKEY)
                     .appendQueryParameter(SORT_PARAM, POPULAR)
                     .build();
@@ -231,13 +236,18 @@ public class MainFragment extends Fragment {
             String moviesByPopularity = getResults(popularityURL);
 
             try {
-                putToDB(moviesByPopularity, POPULAR);
+                putDetailsToDB(moviesByPopularity, POPULAR);
             } catch (JSONException e) {
                 Log.e(LOG_TAG, e.getMessage(), e);
             }
 
+            // Get Rated movies
+            /////////////////////
+
             // Build the URI to pass in for movie information
             builder = Uri.parse(BASE_URL).buildUpon()
+                    .appendPath("discover")
+                    .appendPath("movie")
                     .appendQueryParameter(API_KEY_PARAM, APIKEY)
                     .appendQueryParameter(SORT_PARAM, RATING)
                     .build();
@@ -252,14 +262,67 @@ public class MainFragment extends Fragment {
             String moviesByRating = getResults(ratingURL);
 
             try {
-                putToDB(moviesByRating, RATING);
+                putDetailsToDB(moviesByRating, RATING);
             } catch (JSONException e) {
                 Log.e(LOG_TAG, e.getMessage(), e);
+            }
+
+            // Get Movie Trailers
+            ///////////////////////
+
+            Cursor cursor;
+            String[] movieId;
+
+            // get a list of movie ids
+            String [] movieProjection = {MoviesContract.MovieEntry.COLUMN_MOVIE_ID};
+
+            cursor = getActivity().getContentResolver().query(
+                    MoviesContract.MovieEntry.CONTENT_URI,
+                    movieProjection,
+                    null,
+                    null,
+                    null);
+
+            movieId = new String[cursor.getCount()];
+
+            if (cursor.moveToFirst()){
+                do {
+                    movieId[cursor.getPosition()] =
+                            cursor.getString(cursor.getColumnIndex(MoviesContract.MovieEntry.COLUMN_MOVIE_ID));
+
+                } while (cursor.moveToNext());
+                cursor.close();
+            }
+
+            for (int i=0;i<movieId.length;i++) {
+
+                // Build the URI to pass in for movie information
+                builder = Uri.parse(BASE_URL).buildUpon()
+                        .appendPath("movie")
+                        .appendPath(movieId[i])
+                        .appendPath("videos")
+                        .appendQueryParameter(API_KEY_PARAM, APIKEY)
+                        .build();
+
+                try {
+                    // Create URL to pass in for movie information
+                    popularityURL = new URL(builder.toString());
+                } catch (IOException e) {
+                    Log.e(LOG_TAG, "Check the API Key");
+                }
+
+                String moviesTrailers = getResults(popularityURL);
+
+                try {
+                    putTrailersToDB(moviesTrailers, movieId[i]);
+                } catch (JSONException e) {
+                    Log.e(LOG_TAG, e.getMessage(), e);
+                }
             }
             return null;
         }
 
-        private void putToDB(String apiResult, String sortBy) throws JSONException {
+        private void putDetailsToDB(String apiResult, String sortBy) throws JSONException {
             ContentValues movieValues;
             ContentValues detailsValues;
 
@@ -300,6 +363,40 @@ public class MainFragment extends Fragment {
                         movieValues);
                 getActivity().getContentResolver().insert(MoviesContract.DetailsEntry.CONTENT_URI,
                         detailsValues);
+            }
+        }
+
+        private void putTrailersToDB(String apiResult, String movieId) throws JSONException {
+            ContentValues trailerValues;
+
+            // Make the movieData parameter a JSONObject
+            JSONObject jsonMovieData = new JSONObject(apiResult);
+
+            // Extract the list of results from movieData
+            JSONArray movieInfoArray = jsonMovieData.getJSONArray("results");
+
+            // Loop through the JSONArray and extract the poster location information
+            for (int i = 0; i < movieInfoArray.length(); i++) {
+
+                // Pull the movieInfo from the Array
+                // TODO: Pull the Reviews Data
+                JSONObject movieInfo = movieInfoArray.getJSONObject(i);
+
+                trailerValues = new ContentValues();
+                trailerValues.put(MoviesContract.TrailersEntry.COLUMN_MOVIE_ID,
+                        movieId);
+                trailerValues.put(MoviesContract.TrailersEntry.COLUMN_TRAILER_ID,
+                        movieInfo.getString("id"));
+                trailerValues.put(MoviesContract.TrailersEntry.COLUMN_TRAILER_KEY,
+                        movieInfo.getString("key"));
+                trailerValues.put(MoviesContract.TrailersEntry.COLUMN_NAME,
+                        movieInfo.getString("name"));
+                trailerValues.put(MoviesContract.TrailersEntry.COLUMN_SITE,
+                        movieInfo.getString("site"));
+
+                // add the movie to the database
+                getActivity().getContentResolver().insert(MoviesContract.TrailersEntry.CONTENT_URI,
+                        trailerValues);
             }
         }
 

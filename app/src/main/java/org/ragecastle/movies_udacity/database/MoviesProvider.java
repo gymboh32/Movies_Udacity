@@ -25,6 +25,8 @@ public class MoviesProvider extends ContentProvider {
     static final int MOVIE_SORT_PARAM = 102;
     static final int DETAILS = 200;
     static final int DETAILS_WITH_ID = 201;
+    static final int TRAILERS = 300;
+    static final int TRAILERS_WITH_ID = 301;
 
     private static UriMatcher buildUriMatcher(){
         // Build a UriMatcher by adding a specific code to return based on a match
@@ -38,6 +40,8 @@ public class MoviesProvider extends ContentProvider {
         matcher.addURI(authority, MoviesContract.MovieEntry.TABLE_MOVIES + "/sort_by", MOVIE_SORT_PARAM);
         matcher.addURI(authority, MoviesContract.DetailsEntry.TABLE_DETAILS, DETAILS);
         matcher.addURI(authority, MoviesContract.DetailsEntry.TABLE_DETAILS + "/#", DETAILS_WITH_ID);
+        matcher.addURI(authority, MoviesContract.TrailersEntry.TABLE_TRAILERS, TRAILERS);
+        matcher.addURI(authority, MoviesContract.TrailersEntry.TABLE_TRAILERS + "/#", TRAILERS_WITH_ID);
 
         return matcher;
     }
@@ -116,6 +120,18 @@ public class MoviesProvider extends ContentProvider {
                         sortOrder);
                 return retCursor;
             }
+            // Individual movie based on Id selected
+            case TRAILERS_WITH_ID:{
+                retCursor = moviesDBHelper.getReadableDatabase().query(
+                        MoviesContract.TrailersEntry.TABLE_TRAILERS,
+                        projection,
+                        MoviesContract.TrailersEntry.COLUMN_MOVIE_ID + " = ?",
+                        new String[] {String.valueOf(ContentUris.parseId(uri))},
+                        null,
+                        null,
+                        sortOrder);
+                return retCursor;
+            }
             default:{
                 // By default, we assume a bad URI
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
@@ -163,6 +179,16 @@ public class MoviesProvider extends ContentProvider {
                 // insert unless it is already contained in the database
                 if (_id > 0) {
                     returnUri = MoviesContract.DetailsEntry.buildMoviesUri(_id);
+                } else {
+                    throw new android.database.SQLException("Failed to insert row into: " + uri);
+                }
+                break;
+            }
+            case TRAILERS: {
+                long _id = db.insert(MoviesContract.TrailersEntry.TABLE_TRAILERS, null, values);
+                // insert unless it is already contained in the database
+                if (_id > 0) {
+                    returnUri = MoviesContract.TrailersEntry.buildTrailersUri(_id);
                 } else {
                     throw new android.database.SQLException("Failed to insert row into: " + uri);
                 }

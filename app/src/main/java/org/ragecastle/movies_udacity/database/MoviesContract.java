@@ -77,7 +77,6 @@ public class MoviesContract {
         public static final String COLUMN_TRAILER_KEY = "key";
         public static final String COLUMN_NAME = "name";
         public static final String COLUMN_SITE = "site";
-        public static final String COLUMN_TYPE = "type";
 
         // create content uri
         public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon()
