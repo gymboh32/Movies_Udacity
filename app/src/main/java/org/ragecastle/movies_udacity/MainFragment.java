@@ -119,54 +119,30 @@ public class MainFragment extends Fragment {
         Movie[] moviePosters;
 
         // get a list of movie ids
-        String [] movieProjection = {MoviesContract.MovieEntry.COLUMN_MOVIE_ID,
-                MoviesContract.MovieEntry.COLUMN_SORT_PARAM};
+        String [] movieProjection = {
+                MoviesContract.DetailsEntry.COLUMN_MOVIE_ID,
+                MoviesContract.DetailsEntry.COLUMN_SORT_PARAM,
+                MoviesContract.DetailsEntry.COLUMN_IMAGE};
 
         cursor = getActivity().getContentResolver().query(
-                MoviesContract.MovieEntry.CONTENT_URI.buildUpon()
-                        .appendPath("sort_by")
-                        .build(),
+                MoviesContract.DetailsEntry.CONTENT_URI.buildUpon().appendPath("sort_by").build(),
                 movieProjection,
-                MoviesContract.MovieEntry.COLUMN_SORT_PARAM,
+                MoviesContract.DetailsEntry.COLUMN_SORT_PARAM,
                 new String[]{getSortBy()},
                 null);
 
-        String[] movieId = new String[cursor.getCount()];
-
-        if (cursor.moveToFirst()){
-            do {
-                movieId[cursor.getPosition()] =
-                        cursor.getString(cursor.getColumnIndex(MoviesContract.MovieEntry.COLUMN_MOVIE_ID));
-
-            } while (cursor.moveToNext());
-            cursor.close();
-        }
-
-        // query the movies for the images
-        String [] detailsProjection = {MoviesContract.DetailsEntry.COLUMN_MOVIE_ID,
-                MoviesContract.DetailsEntry.COLUMN_IMAGE};
-
-        moviePosters = new Movie [movieId.length];
-
-        for(int i=0;i<movieId.length;i++) {
-
-            cursor = getActivity().getContentResolver().query(
-                    MoviesContract.DetailsEntry.CONTENT_URI.buildUpon().appendPath(movieId[i]).build(),
-                    detailsProjection,
-                    MoviesContract.DetailsEntry.COLUMN_MOVIE_ID,
-                    movieId,
-                    null);
+        moviePosters = new Movie [cursor.getCount()];
 
             if (cursor.moveToFirst()) {
+                int i=0;
                 do {
-
                     moviePosters[i] = new Movie(
                             cursor.getString(cursor.getColumnIndex(MoviesContract.DetailsEntry.COLUMN_MOVIE_ID)),
                             cursor.getString(cursor.getColumnIndex(MoviesContract.DetailsEntry.COLUMN_IMAGE)));
+                    i++;
                 } while (cursor.moveToNext());
             }
             cursor.close();
-        }
 
         posterAdapter = new MoviePosterAdapter(getActivity(), Arrays.asList(moviePosters));
         // Populate grid view
@@ -272,10 +248,10 @@ public class MainFragment extends Fragment {
             String[] movieId;
 
             // get a list of movie ids
-            String [] movieProjection = {MoviesContract.MovieEntry.COLUMN_MOVIE_ID};
+            String [] movieProjection = {MoviesContract.DetailsEntry.COLUMN_MOVIE_ID};
 
             cursor = getActivity().getContentResolver().query(
-                    MoviesContract.MovieEntry.CONTENT_URI,
+                    MoviesContract.DetailsEntry.CONTENT_URI,
                     movieProjection,
                     null,
                     null,
@@ -286,7 +262,7 @@ public class MainFragment extends Fragment {
             if (cursor.moveToFirst()){
                 do {
                     movieId[cursor.getPosition()] =
-                            cursor.getString(cursor.getColumnIndex(MoviesContract.MovieEntry.COLUMN_MOVIE_ID));
+                            cursor.getString(cursor.getColumnIndex(MoviesContract.DetailsEntry.COLUMN_MOVIE_ID));
 
                 } while (cursor.moveToNext());
             }
@@ -350,7 +326,7 @@ public class MainFragment extends Fragment {
         }
 
         private void putDetailsToDB(String apiResult, String sortBy) throws JSONException {
-            ContentValues movieValues;
+
             ContentValues detailsValues;
 
             // Make the movieData parameter a JSONObject
@@ -365,10 +341,6 @@ public class MainFragment extends Fragment {
                 // Pull the movieInfo from the Array
                 JSONObject movieInfo = movieInfoArray.getJSONObject(i);
 
-                movieValues = new ContentValues();
-                movieValues.put(MoviesContract.MovieEntry.COLUMN_MOVIE_ID, movieInfo.getString("id"));
-                movieValues.put(MoviesContract.MovieEntry.COLUMN_SORT_PARAM, sortBy);
-
                 detailsValues = new ContentValues();
                 detailsValues.put(MoviesContract.DetailsEntry.COLUMN_MOVIE_ID,
                         movieInfo.getString("id"));
@@ -382,10 +354,11 @@ public class MainFragment extends Fragment {
                         movieInfo.getString("vote_average"));
                 detailsValues.put(MoviesContract.DetailsEntry.COLUMN_PLOT,
                         movieInfo.getString("overview"));
+//                detailsValues.put(MoviesContract.DetailsEntry.COLUMN_FAVORITE, Boolean.FALSE);
+                detailsValues.put(MoviesContract.DetailsEntry.COLUMN_SORT_PARAM, sortBy);
+
 
                 // add the movie to the database
-                getActivity().getContentResolver().insert(MoviesContract.MovieEntry.CONTENT_URI,
-                        movieValues);
                 getActivity().getContentResolver().insert(MoviesContract.DetailsEntry.CONTENT_URI,
                         detailsValues);
             }
@@ -394,67 +367,73 @@ public class MainFragment extends Fragment {
         private void putTrailersToDB(String apiResult, String movieId) throws JSONException {
             ContentValues trailerValues;
 
-            // Make the movieData parameter a JSONObject
-            JSONObject jsonMovieData = new JSONObject(apiResult);
+            if(apiResult!=null) {
 
-            // Extract the list of results from movieData
-            JSONArray movieInfoArray = jsonMovieData.getJSONArray("results");
+                // Make the movieData parameter a JSONObject
+                JSONObject jsonMovieData = new JSONObject(apiResult);
 
-            // Loop through the JSONArray and extract the poster location information
-            for (int i = 0; i < movieInfoArray.length(); i++) {
+                // Extract the list of results from movieData
+                JSONArray movieInfoArray = jsonMovieData.getJSONArray("results");
 
-                // Pull the movieInfo from the Array
-                JSONObject movieInfo = movieInfoArray.getJSONObject(i);
+                // Loop through the JSONArray and extract the poster location information
+                for (int i = 0; i < movieInfoArray.length(); i++) {
 
-                trailerValues = new ContentValues();
-                trailerValues.put(MoviesContract.TrailersEntry.COLUMN_MOVIE_ID,
-                        movieId);
-                trailerValues.put(MoviesContract.TrailersEntry.COLUMN_TRAILER_ID,
-                        movieInfo.getString("id"));
-                trailerValues.put(MoviesContract.TrailersEntry.COLUMN_TRAILER_KEY,
-                        movieInfo.getString("key"));
-                trailerValues.put(MoviesContract.TrailersEntry.COLUMN_NAME,
-                        movieInfo.getString("name"));
-                trailerValues.put(MoviesContract.TrailersEntry.COLUMN_SITE,
-                        movieInfo.getString("site"));
+                    // Pull the movieInfo from the Array
+                    JSONObject movieInfo = movieInfoArray.getJSONObject(i);
 
-                // add the movie to the database
-                getActivity().getContentResolver().insert(MoviesContract.TrailersEntry.CONTENT_URI,
-                        trailerValues);
+                    trailerValues = new ContentValues();
+                    trailerValues.put(MoviesContract.TrailersEntry.COLUMN_MOVIE_ID,
+                            movieId);
+                    trailerValues.put(MoviesContract.TrailersEntry.COLUMN_TRAILER_ID,
+                            movieInfo.getString("id"));
+                    trailerValues.put(MoviesContract.TrailersEntry.COLUMN_TRAILER_KEY,
+                            movieInfo.getString("key"));
+                    trailerValues.put(MoviesContract.TrailersEntry.COLUMN_NAME,
+                            movieInfo.getString("name"));
+                    trailerValues.put(MoviesContract.TrailersEntry.COLUMN_SITE,
+                            movieInfo.getString("site"));
+
+                    // add the movie to the database
+                    getActivity().getContentResolver().insert(MoviesContract.TrailersEntry.CONTENT_URI,
+                            trailerValues);
+                }
             }
         }
 
         private void putReviewsToDB(String apiResult, String movieId) throws JSONException {
             ContentValues reviewValues;
 
-            // Make the movieData parameter a JSONObject
-            JSONObject jsonMovieData = new JSONObject(apiResult);
+            if(apiResult != null) {
 
-            // Extract the list of results from movieData
-            JSONArray movieInfoArray = jsonMovieData.getJSONArray("results");
+                // Make the movieData parameter a JSONObject
+                JSONObject jsonMovieData = new JSONObject(apiResult);
+
+                // Extract the list of results from movieData
+                JSONArray movieInfoArray = jsonMovieData.getJSONArray("results");
 
 
-            // Loop through the JSONArray and extract the poster location information
-            for (int i = 0; i < movieInfoArray.length(); i++) {
+                // Loop through the JSONArray and extract the poster location information
+                for (int i = 0; i < movieInfoArray.length(); i++) {
 
-                // Pull the movieInfo from the Array
-                JSONObject movieInfo = movieInfoArray.getJSONObject(i);
+                    // Pull the movieInfo from the Array
+                    JSONObject movieInfo = movieInfoArray.getJSONObject(i);
 
-                reviewValues = new ContentValues();
-                reviewValues.put(MoviesContract.TrailersEntry.COLUMN_MOVIE_ID,
-                        movieId);
-                reviewValues.put(MoviesContract.ReviewsEntry.COLUMN_REVIEW_ID,
-                        movieInfo.getString("id"));
-                reviewValues.put(MoviesContract.ReviewsEntry.COLUMN_AUTHOR,
-                        movieInfo.getString("author"));
-                reviewValues.put(MoviesContract.ReviewsEntry.COLUMN_CONTENT,
-                        movieInfo.getString("content"));
-                reviewValues.put(MoviesContract.ReviewsEntry.COLUMN_URL,
-                        movieInfo.getString("url"));
+                    reviewValues = new ContentValues();
+                    reviewValues.put(MoviesContract.TrailersEntry.COLUMN_MOVIE_ID,
+                            movieId);
+                    reviewValues.put(MoviesContract.ReviewsEntry.COLUMN_REVIEW_ID,
+                            movieInfo.getString("id"));
+                    reviewValues.put(MoviesContract.ReviewsEntry.COLUMN_AUTHOR,
+                            movieInfo.getString("author"));
+                    reviewValues.put(MoviesContract.ReviewsEntry.COLUMN_CONTENT,
+                            movieInfo.getString("content"));
+                    reviewValues.put(MoviesContract.ReviewsEntry.COLUMN_URL,
+                            movieInfo.getString("url"));
 
-                // add the movie to the database
-                getActivity().getContentResolver().insert(MoviesContract.ReviewsEntry.CONTENT_URI,
-                        reviewValues);
+                    // add the movie to the database
+                    getActivity().getContentResolver().insert(MoviesContract.ReviewsEntry.CONTENT_URI,
+                            reviewValues);
+                }
             }
         }
 
@@ -507,11 +486,5 @@ public class MainFragment extends Fragment {
             return null;
         }
 
-//        @Override
-//        protected void onPostExecute(Movie[] moviesArray) {
-//
-//            fillGrid(moviesArray);
-//            updateDB(moviesArray);
-//        }
     }
 }

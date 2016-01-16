@@ -20,11 +20,9 @@ public class MoviesProvider extends ContentProvider {
     private static final UriMatcher uriMatcher = buildUriMatcher();
     private MoviesDBHelper moviesDBHelper;
 
-    static final int MOVIE = 100;
-    static final int MOVIE_WITH_ID = 101;
-    static final int MOVIE_SORT_PARAM = 102;
     static final int DETAILS = 200;
     static final int DETAILS_WITH_ID = 201;
+    static final int MOVIE_SORT_PARAM = 202;
     static final int TRAILERS = 300;
     static final int TRAILERS_WITH_ID = 301;
     static final int REVIEWS = 400;
@@ -37,11 +35,9 @@ public class MoviesProvider extends ContentProvider {
         final String authority = MoviesContract.CONTENT_AUTHORITY;
 
         // add a code for each type of URI you want
-        matcher.addURI(authority, MoviesContract.MovieEntry.TABLE_MOVIES, MOVIE);
-        matcher.addURI(authority, MoviesContract.MovieEntry.TABLE_MOVIES + "/#", MOVIE_WITH_ID);
-        matcher.addURI(authority, MoviesContract.MovieEntry.TABLE_MOVIES + "/sort_by", MOVIE_SORT_PARAM);
         matcher.addURI(authority, MoviesContract.DetailsEntry.TABLE_DETAILS, DETAILS);
         matcher.addURI(authority, MoviesContract.DetailsEntry.TABLE_DETAILS + "/#", DETAILS_WITH_ID);
+        matcher.addURI(authority, MoviesContract.DetailsEntry.TABLE_DETAILS + "/sort_by", MOVIE_SORT_PARAM);
         matcher.addURI(authority, MoviesContract.TrailersEntry.TABLE_TRAILERS, TRAILERS);
         matcher.addURI(authority, MoviesContract.TrailersEntry.TABLE_TRAILERS + "/#", TRAILERS_WITH_ID);
         matcher.addURI(authority, MoviesContract.ReviewsEntry.TABLE_REVIEWS, REVIEWS);
@@ -66,35 +62,12 @@ public class MoviesProvider extends ContentProvider {
 
         switch(uriMatcher.match(uri)){
             // All Movies selected
-            case MOVIE:{
-                retCursor = moviesDBHelper.getWritableDatabase().query(
-                        MoviesContract.MovieEntry.TABLE_MOVIES,
-                        projection,
-                        selection,
-                        selectionArgs,
-                        null,
-                        null,
-                        sortOrder);
-                return retCursor;
-            }
-            // Individual movie based on Id selected
-            case MOVIE_WITH_ID:{
-                retCursor = moviesDBHelper.getReadableDatabase().query(
-                        MoviesContract.MovieEntry.TABLE_MOVIES,
-                        projection,
-                        MoviesContract.MovieEntry.COLUMN_MOVIE_ID + " = ?",
-                        new String[] {String.valueOf(ContentUris.parseId(uri))},
-                        null,
-                        null,
-                        sortOrder);
-                return retCursor;
-            }
             // Individual movies based on sort parameter
             case MOVIE_SORT_PARAM:{
                 retCursor = moviesDBHelper.getReadableDatabase().query(
-                        MoviesContract.MovieEntry.TABLE_MOVIES,
+                        MoviesContract.DetailsEntry.TABLE_DETAILS,
                         projection,
-                        MoviesContract.MovieEntry.COLUMN_SORT_PARAM + " = ?",
+                        MoviesContract.DetailsEntry.COLUMN_SORT_PARAM + " = ?",
                         selectionArgs,
                         null,
                         null,
@@ -160,14 +133,14 @@ public class MoviesProvider extends ContentProvider {
         final int match = uriMatcher.match(uri);
 
         switch (match){
-            case MOVIE:{
-                return MoviesContract.MovieEntry.CONTENT_DIR_TYPE;
+            case DETAILS:{
+                return MoviesContract.DetailsEntry.CONTENT_DIR_TYPE;
             }
-            case MOVIE_WITH_ID:{
-                return MoviesContract.MovieEntry.CONTENT_ITEM_TYPE;
+            case DETAILS_WITH_ID:{
+                return MoviesContract.DetailsEntry.CONTENT_ITEM_TYPE;
             }
             case MOVIE_SORT_PARAM:{
-                return MoviesContract.MovieEntry.CONTENT_ITEM_TYPE;
+                return MoviesContract.DetailsEntry.CONTENT_ITEM_TYPE;
             }
             default:{
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
@@ -180,17 +153,7 @@ public class MoviesProvider extends ContentProvider {
         final SQLiteDatabase db = moviesDBHelper.getWritableDatabase();
         Uri returnUri;
         switch (uriMatcher.match(uri)) {
-            case MOVIE: {
-                long _id = db.insert(MoviesContract.MovieEntry.TABLE_MOVIES, null, values);
-                // insert unless it is already contained in the database
-                if (_id > 0) {
-                    returnUri = MoviesContract.MovieEntry.buildMoviesUri(_id);
-                } else {
-                    throw new android.database.SQLException("Failed to insert row into: " + uri);
-                }
-                break;
-            }
-            case DETAILS: {
+           case DETAILS: {
                 long _id = db.insert(MoviesContract.DetailsEntry.TABLE_DETAILS, null, values);
                 // insert unless it is already contained in the database
                 if (_id > 0) {
@@ -234,28 +197,13 @@ public class MoviesProvider extends ContentProvider {
             final int match = uriMatcher.match(uri);
             int numDeleted;
             switch(match){
-                case MOVIE:
-                    numDeleted = db.delete(
-                            MoviesContract.MovieEntry.TABLE_MOVIES, selection, selectionArgs);
-                    // reset _ID
-                    db.execSQL("DELETE FROM SQLITE_SEQUENCE WHERE NAME = '" +
-                            MoviesContract.MovieEntry.TABLE_MOVIES + "'");
-                    break;
-                case MOVIE_WITH_ID:
-                    numDeleted = db.delete(MoviesContract.MovieEntry.TABLE_MOVIES,
-                            MoviesContract.MovieEntry.COLUMN_MOVIE_ID + " = ?",
+               case MOVIE_SORT_PARAM:
+                    numDeleted = db.delete(MoviesContract.DetailsEntry.TABLE_DETAILS,
+                            MoviesContract.DetailsEntry.COLUMN_SORT_PARAM + " = ? ",
                             new String[]{String.valueOf(ContentUris.parseId(uri))});
                     // reset _ID
                     db.execSQL("DELETE FROM SQLITE_SEQUENCE WHERE NAME = '" +
-                            MoviesContract.MovieEntry.TABLE_MOVIES + "'");
-                    break;
-                case MOVIE_SORT_PARAM:
-                    numDeleted = db.delete(MoviesContract.MovieEntry.TABLE_MOVIES,
-                            MoviesContract.MovieEntry.COLUMN_SORT_PARAM + " = ? ",
-                            new String[]{String.valueOf(ContentUris.parseId(uri))});
-                    // reset _ID
-                    db.execSQL("DELETE FROM SQLITE_SEQUENCE WHERE NAME = '" +
-                            MoviesContract.MovieEntry.TABLE_MOVIES + "'");
+                            MoviesContract.DetailsEntry.TABLE_DETAILS + "'");
                     break;
                 case DETAILS:
                     numDeleted = db.delete(
@@ -281,24 +229,10 @@ public class MoviesProvider extends ContentProvider {
         }
 
         switch(uriMatcher.match(uri)){
-            case MOVIE:{
-                numUpdated = db.update(MoviesContract.MovieEntry.TABLE_MOVIES,
-                        values,
-                        selection,
-                        selectionArgs);
-                break;
-            }
-            case MOVIE_WITH_ID: {
-                numUpdated = db.update(MoviesContract.MovieEntry.TABLE_MOVIES,
-                        values,
-                        MoviesContract.MovieEntry.COLUMN_MOVIE_ID + " = ?",
-                        new String[] {String.valueOf(ContentUris.parseId(uri))});
-                break;
-            }
             case MOVIE_SORT_PARAM: {
-                numUpdated = db.update(MoviesContract.MovieEntry.TABLE_MOVIES,
+                numUpdated = db.update(MoviesContract.DetailsEntry.TABLE_DETAILS,
                         values,
-                        MoviesContract.MovieEntry.COLUMN_SORT_PARAM + " = ?",
+                        MoviesContract.DetailsEntry.COLUMN_SORT_PARAM + " = ?",
                         new String[] {String.valueOf(ContentUris.parseId(uri))});
                 break;
             }
