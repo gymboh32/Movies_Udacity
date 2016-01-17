@@ -12,7 +12,6 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
-import org.ragecastle.movies_udacity.adapters.Movie;
 import org.ragecastle.movies_udacity.database.MoviesContract;
 
 /**
@@ -56,7 +55,6 @@ public class DetailsFragment extends Fragment {
         TextView releaseDateView = (TextView) rootView.findViewById(R.id.movie_release_text);
         TextView voteAvgView = (TextView) rootView.findViewById(R.id.movie_vote_text);
         TextView plotView = (TextView) rootView.findViewById(R.id.movie_overview_text);
-        TextView reviewView = (TextView) rootView.findViewById(R.id.movie_review_text);
 
         Cursor cursor;
 
@@ -88,24 +86,24 @@ public class DetailsFragment extends Fragment {
         }
         cursor.close();
 
-        String[] reviewProjection = {MoviesContract.ReviewsEntry.COLUMN_MOVIE_ID,
-                MoviesContract.ReviewsEntry.COLUMN_CONTENT};
-
-        cursor = getActivity().getContentResolver().query(
-                MoviesContract.ReviewsEntry.CONTENT_URI.buildUpon()
-                        .appendPath(intent.getStringExtra("movie_id"))
-                        .build(),
-                reviewProjection,
-                null,
-                null,
-                null);
-
-        if (cursor.moveToFirst()){
-            do {
-                review = cursor.getString(cursor.getColumnIndex(MoviesContract.ReviewsEntry.COLUMN_CONTENT));
-            } while (cursor.moveToNext());
-        }
-        cursor.close();
+//        String[] reviewProjection = {MoviesContract.ReviewsEntry.COLUMN_MOVIE_ID,
+//                MoviesContract.ReviewsEntry.COLUMN_CONTENT};
+//
+//        cursor = getActivity().getContentResolver().query(
+//                MoviesContract.ReviewsEntry.CONTENT_URI.buildUpon()
+//                        .appendPath(intent.getStringExtra("movie_id"))
+//                        .build(),
+//                reviewProjection,
+//                null,
+//                null,
+//                null);
+//
+//        if (cursor.moveToFirst()){
+//            do {
+//                review = cursor.getString(cursor.getColumnIndex(MoviesContract.ReviewsEntry.COLUMN_CONTENT));
+//            } while (cursor.moveToNext());
+//        }
+//        cursor.close();
 
         release_date = "Release Date: \n" + release_date;
         avg_rating = "Average Rating: \n" + avg_rating;
@@ -120,45 +118,8 @@ public class DetailsFragment extends Fragment {
         releaseDateView.setText(release_date);
         voteAvgView.setText(avg_rating);
         plotView.setText(plot);
-        reviewView.setText(review);
+//        reviewView.setText(review);
         return rootView;
-    }
-
-    private Movie getMovie(String movieId){
-        Cursor cursor;
-
-        String[] projection = {
-                MoviesContract.DetailsEntry.COLUMN_MOVIE_ID,
-                MoviesContract.DetailsEntry.COLUMN_TITLE,
-                MoviesContract.DetailsEntry.COLUMN_IMAGE,
-                MoviesContract.DetailsEntry.COLUMN_RELEASE_DATE,
-                MoviesContract.DetailsEntry.COLUMN_AVG_RATING,
-                MoviesContract.DetailsEntry.COLUMN_PLOT};
-
-        cursor = getActivity().getContentResolver().query(
-                MoviesContract.DetailsEntry.CONTENT_URI.buildUpon().appendPath(movieId).build(),
-                projection,
-                null,
-                null,
-                null);
-
-        if (cursor.moveToFirst()){
-            Movie movie;
-            do {
-                String title = cursor.getString(cursor.getColumnIndex(MoviesContract.DetailsEntry.COLUMN_TITLE));
-                String image = cursor.getString(cursor.getColumnIndex(MoviesContract.DetailsEntry.COLUMN_IMAGE));
-                String release_date = cursor.getString(cursor.getColumnIndex(MoviesContract.DetailsEntry.COLUMN_RELEASE_DATE));
-                String avg_rating = cursor.getString(cursor.getColumnIndex(MoviesContract.DetailsEntry.COLUMN_AVG_RATING));
-                String plot = cursor.getString(cursor.getColumnIndex(MoviesContract.DetailsEntry.COLUMN_PLOT));
-
-                movie = new Movie(movieId, image);
-            } while (cursor.moveToNext());
-
-            cursor.close();
-            return movie;
-        }
-
-        return new Movie("id", "title");
     }
 }
 

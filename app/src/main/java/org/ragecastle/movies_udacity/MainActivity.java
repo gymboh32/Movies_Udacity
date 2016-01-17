@@ -14,8 +14,10 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-//        getContentResolver().delete(MoviesContract.MovieEntry.CONTENT_URI,
+//
+//        getContentResolver().delete(MoviesContract.SortEntry.CONTENT_URI.buildUpon()
+//                .appendPath("sort_by")
+//                .build(),
 //                null,
 //                null);
 //        getContentResolver().delete(MoviesContract.DetailsEntry.CONTENT_URI,

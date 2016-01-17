@@ -13,7 +13,7 @@ import android.util.Log;
 public class MoviesDBHelper extends SQLiteOpenHelper {
     public static final String LOG_TAG = MoviesDBHelper.class.getSimpleName();
 
-    private static final int DATABASE_VERSION = 9;
+    private static final int DATABASE_VERSION = 18;
 
     static final String DATABASE_NAME = "movies.db";
 
@@ -26,14 +26,13 @@ public class MoviesDBHelper extends SQLiteOpenHelper {
 
         final String SQL_CREATE_DETAILS_TABLE = "CREATE TABLE " +
                 MoviesContract.DetailsEntry.TABLE_DETAILS + " (" +
-                MoviesContract.DetailsEntry.COLUMN_MOVIE_ID + " TEXT NOT NULL, " +
+                MoviesContract.DetailsEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                MoviesContract.DetailsEntry.COLUMN_MOVIE_ID + " TEXT UNIQUE NOT NULL, " +
                 MoviesContract.DetailsEntry.COLUMN_TITLE + " TEXT NOT NULL, " +
                 MoviesContract.DetailsEntry.COLUMN_IMAGE + " TEXT NOT NULL, " +
                 MoviesContract.DetailsEntry.COLUMN_RELEASE_DATE + " TEXT NOT NULL, " +
                 MoviesContract.DetailsEntry.COLUMN_AVG_RATING + " TEXT NOT NULL, " +
                 MoviesContract.DetailsEntry.COLUMN_PLOT + " TEXT NOT NULL, " +
-                MoviesContract.DetailsEntry.COLUMN_FAVORITE + " BOOLEAN, " +
-                MoviesContract.DetailsEntry.COLUMN_SORT_PARAM + " TEXT NOT NULL, " +
                 " UNIQUE (" + MoviesContract.DetailsEntry.COLUMN_MOVIE_ID + ") ON CONFLICT REPLACE);";
 
         final String SQL_CREATE_TRAILERS_TABLE = "CREATE TABLE " +
@@ -58,9 +57,18 @@ public class MoviesDBHelper extends SQLiteOpenHelper {
                 MoviesContract.DetailsEntry.TABLE_DETAILS + " (" + MoviesContract.DetailsEntry.COLUMN_MOVIE_ID +
                 "));";
 
+        final String SQL_CREATE_SORT_TABLE = "CREATE TABLE " +
+                MoviesContract.SortEntry.TABLE_SORT + " (" +
+                MoviesContract.SortEntry.COLUMN_MOVIE_ID + " TEXT NOT NULL, " +
+                MoviesContract.SortEntry.COLUMN_SORT_BY + " TEXT NOT NULL, " +
+                " FOREIGN KEY (" + MoviesContract.SortEntry.COLUMN_MOVIE_ID + ")" +
+                " REFERENCES " + MoviesContract.DetailsEntry.TABLE_DETAILS + " (" +
+                MoviesContract.DetailsEntry.COLUMN_MOVIE_ID + "));";
+
         db.execSQL(SQL_CREATE_DETAILS_TABLE);
         db.execSQL(SQL_CREATE_TRAILERS_TABLE);
         db.execSQL(SQL_CREATE_REVIEWS_TABLE);
+        db.execSQL(SQL_CREATE_SORT_TABLE);
     }
 
     @Override
@@ -71,6 +79,7 @@ public class MoviesDBHelper extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS " + MoviesContract.DetailsEntry.TABLE_DETAILS);
         db.execSQL("DROP TABLE IF EXISTS " + MoviesContract.TrailersEntry.TABLE_TRAILERS);
         db.execSQL("DROP TABLE IF EXISTS " + MoviesContract.ReviewsEntry.TABLE_REVIEWS);
+        db.execSQL("DROP TABLE IF EXISTS " + MoviesContract.SortEntry.TABLE_SORT);
 
         onCreate(db);
     }
