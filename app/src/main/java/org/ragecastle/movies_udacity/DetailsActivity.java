@@ -2,8 +2,10 @@ package org.ragecastle.movies_udacity;
 
 import android.content.ContentValues;
 import android.content.Intent;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -37,7 +39,6 @@ public class DetailsActivity extends AppCompatActivity {
         switch (id) {
             case R.id.favorite_button:
                 markAsFavorite();
-                Toast.makeText(this, "added to favorites", Toast.LENGTH_LONG).show();
                 break;
         }
     }
@@ -45,15 +46,50 @@ public class DetailsActivity extends AppCompatActivity {
     private void markAsFavorite(){
         ContentValues favoriteValues;
         Intent intent = getIntent();
+        Cursor cursor;
+        String[] projection = {MoviesContract.SortEntry.COLUMN_MOVIE_ID,
+                MoviesContract.SortEntry.COLUMN_SORT_BY};
 
-        favoriteValues = new ContentValues();
-        favoriteValues.put(MoviesContract.SortEntry.COLUMN_SORT_BY, "favorite");
-        favoriteValues.put(MoviesContract.SortEntry.COLUMN_MOVIE_ID, intent.getStringExtra("movie_id"));
-
-        this.getContentResolver().insert(
+        cursor = getContentResolver().query(
                 MoviesContract.SortEntry.CONTENT_URI.buildUpon()
-                        .appendPath("sort_by")
+                        .appendPath(intent.getStringExtra("movie_id"))
                         .build(),
-                favoriteValues);
+                projection,
+                null,
+                null,
+                null
+        );
+
+        Boolean isFavorite = false;
+        if (cursor.moveToFirst() ) {
+            do {
+                isFavorite =
+                        cursor.getString(
+                                cursor.getColumnIndex(
+                                        MoviesContract.SortEntry.COLUMN_SORT_BY))
+                                .contentEquals("favorite") || isFavorite;
+
+                Log.e(LOG_TAG, isFavorite.toString());
+                Log.e(LOG_TAG, cursor.getString(cursor.getColumnIndex(MoviesContract.SortEntry.COLUMN_SORT_BY)));
+
+            } while (cursor.moveToNext());
+        }
+
+        if (isFavorite) {
+            // TODO: Remove from favorites
+            Toast.makeText(this, "Already in favorites", Toast.LENGTH_SHORT).show();
+        } else {
+            favoriteValues = new ContentValues();
+            favoriteValues.put(MoviesContract.SortEntry.COLUMN_SORT_BY, "favorite");
+            favoriteValues.put(MoviesContract.SortEntry.COLUMN_MOVIE_ID, intent.getStringExtra("movie_id"));
+
+            this.getContentResolver().insert(
+                    MoviesContract.SortEntry.CONTENT_URI.buildUpon()
+                            .appendPath("sort_by")
+                            .build(),
+                    favoriteValues);
+
+            Toast.makeText(this, "Added to favorites", Toast.LENGTH_SHORT).show();
+        }
     }
 }
