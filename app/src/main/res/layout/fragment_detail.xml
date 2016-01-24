@@ -6,73 +6,101 @@
     tools:context="org.ragecastle.movies_udacity.DetailFragment"
     android:orientation="vertical">
 
-    <RelativeLayout
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/movie_title_text"
+            <TextView
+                android:id="@+id/movie_title_text"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:layout_marginTop="@dimen/activity_horizontal_margin"
+                android:layout_marginStart="10dp"
+                android:text="@string/title_view_text"
+                android:layout_weight="1"/>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:id="@+id/poster_image"
+                android:layout_weight="1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/poster_description"
+                android:layout_marginStart="@dimen/activity_vertical_margin"
+                android:onClick="onClick" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/movie_release_text"
+                android:layout_weight="1"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="@string/release_view_text"
+                android:layout_marginTop="10dp"
+                android:layout_marginStart="@dimen/activity_vertical_margin" />
+
+            <TextView
+                android:id="@+id/movie_vote_text"
+                android:layout_weight="2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="@string/vote_view_text"
+                android:layout_marginTop="10dp"
+                android:layout_marginStart="@dimen/activity_vertical_margin" />
+
+            <Button
+                android:id="@+id/favorite_button"
+                android:layout_weight="3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="@string/favorite_button_text"
+                android:layout_marginTop="10dp"
+                android:layout_marginStart="@dimen/activity_vertical_margin"
+                android:onClick="onClick" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/extras_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceLarge"
-            android:layout_marginTop="@dimen/activity_horizontal_margin"
-            android:layout_marginStart="10dp"
-            android:text="@string/title_view_text" />
+            android:orientation="vertical">
 
-        <ImageView
-            android:id="@+id/poster_image"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:contentDescription="@string/poster_description"
-            android:layout_marginStart="@dimen/activity_vertical_margin"
-            android:layout_alignTop="@+id/movie_release_text"
-            android:onClick="onClick" />
+            <TextView
+                android:id="@+id/movie_overview_text"
+                android:layout_weight="1"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="@string/plot_view_text"
+                android:layout_marginTop="10dp"
+                android:layout_marginEnd="@dimen/activity_vertical_margin" />
 
-        <TextView
-            android:id="@+id/movie_release_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceLarge"
-            android:text="@string/release_view_text"
-            android:layout_marginTop="10dp"
-            android:layout_marginStart="@dimen/activity_vertical_margin"
-            android:layout_toEndOf="@+id/poster_image"
-            android:layout_below="@+id/movie_title_text" />
+            <TextView
+                android:id="@+id/movie_trailer_text"
+                android:layout_weight="2"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:text="@string/trailer_view_text"
+                android:layout_marginTop="10dp"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
 
-        <TextView
-            android:id="@+id/movie_vote_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceLarge"
-            android:text="@string/vote_view_text"
-            android:layout_marginTop="10dp"
-            android:layout_marginStart="@dimen/activity_vertical_margin"
-            android:layout_toEndOf="@+id/poster_image"
-            android:layout_below="@+id/movie_release_text" />
-
-        <Button
-            android:id="@+id/favorite_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceLarge"
-            android:text="@string/favorite_button_text"
-            android:layout_marginTop="10dp"
-            android:layout_marginStart="@dimen/activity_vertical_margin"
-            android:layout_toEndOf="@+id/poster_image"
-            android:layout_below="@+id/movie_vote_text"
-            android:onClick="onClick" />
-
-        <TextView
-            android:id="@+id/movie_overview_text"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceLarge"
-            android:text="@string/plot_view_text"
-            android:layout_marginTop="10dp"
-            android:layout_marginEnd="@dimen/activity_vertical_margin"
-            android:layout_below="@+id/poster_image"
-            android:layout_alignStart="@+id/poster_image" />
-
+        </LinearLayout>
         <!--<TextView-->
             <!--android:id="@+id/movie_review_text"-->
             <!--android:layout_width="match_parent"-->
@@ -84,6 +112,6 @@
             <!--android:layout_below="@+id/movie_overview_text"-->
             <!--android:layout_alignStart="@+id/movie_overview_text" />-->
 
-    </RelativeLayout>
+    </LinearLayout>
 
 </ScrollView>

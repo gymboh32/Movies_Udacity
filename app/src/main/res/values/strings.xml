@@ -19,4 +19,5 @@
     <string name="review_view_text">reviews</string>
     <string name="favorite_button_text">Favorite</string>
     <string name="action_sort_by_favorite">Sort by: Favorite</string>
+    <string name="trailer_view_text">Trailer_1</string>
 </resources>
