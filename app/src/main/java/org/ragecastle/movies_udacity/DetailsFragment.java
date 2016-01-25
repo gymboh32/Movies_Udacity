@@ -48,6 +48,8 @@ public class DetailsFragment extends Fragment {
                              ViewGroup container,
                              Bundle savedInstanceState) {
         // TODO: try butterkife
+        // TODO: add share intent to share trailer link
+        // TODO: make trailers and reviews more presentable
 
         rootView = inflater.inflate(R.layout.fragment_detail, container, false);
 

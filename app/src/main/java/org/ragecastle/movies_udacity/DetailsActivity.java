@@ -33,6 +33,10 @@ public class DetailsActivity extends AppCompatActivity {
         }
     }
 
+
+    // TODO: change text of favorite button if already marked as favorite
+    // TODO: change onClickListener if already in database
+
     public void onClick(View v) {
         int id = v.getId();
 
