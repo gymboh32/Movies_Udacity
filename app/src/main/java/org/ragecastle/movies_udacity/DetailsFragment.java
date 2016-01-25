@@ -1,21 +1,27 @@
 package org.ragecastle.movies_udacity;
 
 import android.app.Fragment;
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
 
+import org.ragecastle.movies_udacity.adapters.Movie;
 import org.ragecastle.movies_udacity.database.MoviesContract;
 
+import java.net.URI;
 import java.util.zip.Inflater;
 
 /**
@@ -46,6 +52,7 @@ public class DetailsFragment extends Fragment {
         rootView = inflater.inflate(R.layout.fragment_detail, container, false);
 
         putDetails();
+        putTrailers();
         putReviews();
 
         return rootView;
@@ -117,12 +124,14 @@ public class DetailsFragment extends Fragment {
 
         Cursor cursor;
         Intent intent = getActivity().getIntent();
-        String review;
-        String[] reviewProjection = {MoviesContract.ReviewsEntry.COLUMN_MOVIE_ID,
-                MoviesContract.ReviewsEntry.COLUMN_CONTENT};
+
+        String[] reviewProjection = {
+                MoviesContract.TrailersEntry.COLUMN_SITE,
+                MoviesContract.TrailersEntry.COLUMN_TRAILER_KEY,
+                MoviesContract.TrailersEntry.COLUMN_NAME};
 
         cursor = getActivity().getContentResolver().query(
-                MoviesContract.ReviewsEntry.CONTENT_URI.buildUpon()
+                MoviesContract.TrailersEntry.CONTENT_URI.buildUpon()
                         .appendPath(intent.getStringExtra("movie_id"))
                         .build(),
                 reviewProjection,
@@ -132,15 +141,28 @@ public class DetailsFragment extends Fragment {
 
         if (cursor != null && cursor.moveToFirst()){
             do {
+                String trailerName = cursor.getString(cursor.getColumnIndex(MoviesContract.TrailersEntry.COLUMN_NAME));
+                String site = cursor.getString(cursor.getColumnIndex(MoviesContract.TrailersEntry.COLUMN_SITE));
+                String key = cursor.getString(cursor.getColumnIndex(MoviesContract.TrailersEntry.COLUMN_TRAILER_KEY));
+
+                // Build the URI to pass in for movie information
+                final Uri builder = Uri.EMPTY.buildUpon()
+                        .scheme("http")
+                        .authority(site)
+                        .appendPath("watch")
+                        .appendQueryParameter("v", key)
+                        .build();
+
                 LinearLayout linearLayout = (LinearLayout) rootView.findViewById(R.id.extras_layout);
                 TextView textView = new TextView(getActivity());
-                review = cursor.getString(cursor.getColumnIndex(MoviesContract.ReviewsEntry.COLUMN_CONTENT));
-                textView.setText(review);
-                View divider = new View(getActivity());
-                divider.setBackgroundColor(0x000000);
-                divider.setMinimumHeight(10);
-                divider.setMinimumWidth(500);
-                linearLayout.addView(divider);
+                textView.setText(trailerName); textView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        //create new intent to launch the detail page
+                        Intent intent = new Intent(Intent.ACTION_VIEW, builder);
+                        startActivity(intent);
+                    }
+                });
                 linearLayout.addView(textView);
             } while (cursor.moveToNext());
             cursor.close();
@@ -149,11 +171,13 @@ public class DetailsFragment extends Fragment {
 
     private void putReviews(){
 
-        Cursor cursor;
+        final Cursor cursor;
         Intent intent = getActivity().getIntent();
         String review;
-        String[] reviewProjection = {MoviesContract.ReviewsEntry.COLUMN_MOVIE_ID,
-                MoviesContract.ReviewsEntry.COLUMN_CONTENT};
+        String[] reviewProjection = {
+                MoviesContract.ReviewsEntry.COLUMN_MOVIE_ID,
+                MoviesContract.ReviewsEntry.COLUMN_CONTENT,
+                MoviesContract.ReviewsEntry.COLUMN_URL};
 
         cursor = getActivity().getContentResolver().query(
                 MoviesContract.ReviewsEntry.CONTENT_URI.buildUpon()
@@ -166,10 +190,20 @@ public class DetailsFragment extends Fragment {
 
         if (cursor != null && cursor.moveToFirst()){
             do {
+                review = cursor.getString(cursor.getColumnIndex(MoviesContract.ReviewsEntry.COLUMN_CONTENT));
+                final String url = cursor.getString(cursor.getColumnIndex(MoviesContract.ReviewsEntry.COLUMN_URL));
+
                 LinearLayout linearLayout = (LinearLayout) rootView.findViewById(R.id.extras_layout);
                 TextView textView = new TextView(getActivity());
-                review = cursor.getString(cursor.getColumnIndex(MoviesContract.ReviewsEntry.COLUMN_CONTENT));
                 textView.setText(review);
+                textView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        //create new intent to launch the detail page
+                        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                        startActivity(intent);
+                    }
+                });
                 linearLayout.addView(textView);
             } while (cursor.moveToNext());
             cursor.close();

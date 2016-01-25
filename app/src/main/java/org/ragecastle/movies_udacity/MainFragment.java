@@ -125,7 +125,7 @@ public class MainFragment extends Fragment {
 
         moviePosters = new Movie [cursor.getCount()];
 
-            if (cursor.moveToFirst()) {
+        if (cursor.moveToFirst()) {
                 int i=0;
                 do {
                     moviePosters[i] = new Movie(
@@ -133,8 +133,8 @@ public class MainFragment extends Fragment {
                             cursor.getString(cursor.getColumnIndex(MoviesContract.DetailsEntry.COLUMN_IMAGE)));
                     i++;
                 } while (cursor.moveToNext());
-            }
             cursor.close();
+        }
 
         posterAdapter = new MoviePosterAdapter(getActivity(), Arrays.asList(moviePosters));
         // Populate grid view
