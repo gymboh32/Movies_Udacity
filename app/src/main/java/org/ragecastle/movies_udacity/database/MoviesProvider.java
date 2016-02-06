@@ -7,6 +7,7 @@ import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
+import android.util.Log;
 
 /**
  * Created by jahall on 11/30/15.
@@ -82,7 +83,7 @@ public class MoviesProvider extends ContentProvider {
                                 MoviesContract.DetailsEntry.TABLE_DETAILS + " ON " +
                                 "details.movie_id" + "=" + "sort.movie_id" ,
                         projection,
-                        MoviesContract.SortEntry.COLUMN_SORT_BY + " = ?",
+                        MoviesContract.SortEntry.COLUMN_SORT_BY + "=?",
                         selectionArgs,
                         null,
                         null,
@@ -245,17 +246,52 @@ public class MoviesProvider extends ContentProvider {
             switch(match){
                case MOVIE_SORT_PARAM:
                     numDeleted = db.delete(
-                            MoviesContract.SortEntry.TABLE_SORT, selection, selectionArgs);
+                            MoviesContract.SortEntry.TABLE_SORT,
+                            selection,
+                            selectionArgs);
+                    // reset _ID
+                   db.execSQL("DELETE FROM SQLITE_SEQUENCE WHERE NAME = '" +
+                           MoviesContract.SortEntry.TABLE_SORT + "'");
+                    break;
+                case DETAILS:
+                    numDeleted = db.delete(
+                            MoviesContract.DetailsEntry.TABLE_DETAILS,
+                            selection,
+                            selectionArgs);
                     // reset _ID
                     db.execSQL("DELETE FROM SQLITE_SEQUENCE WHERE NAME = '" +
                             MoviesContract.DetailsEntry.TABLE_DETAILS + "'");
                     break;
-                case DETAILS:
+                case TRAILERS:
                     numDeleted = db.delete(
-                            MoviesContract.DetailsEntry.TABLE_DETAILS, selection, selectionArgs);
+                            MoviesContract.TrailersEntry.TABLE_TRAILERS,
+                            selection,
+                            selectionArgs);
                     // reset _ID
                     db.execSQL("DELETE FROM SQLITE_SEQUENCE WHERE NAME = '" +
-                            MoviesContract.DetailsEntry.TABLE_DETAILS + "'");
+                            MoviesContract.TrailersEntry.TABLE_TRAILERS + "'");
+                    break;
+                case REVIEWS:
+                    numDeleted = db.delete(
+                            MoviesContract.ReviewsEntry.TABLE_REVIEWS,
+                            selection,
+                            selectionArgs);
+                    // reset _ID
+                    db.execSQL("DELETE FROM SQLITE_SEQUENCE WHERE NAME = '" +
+                            MoviesContract.ReviewsEntry.TABLE_REVIEWS + "'");
+                    break;
+                case SORT_WITH_ID:
+                    numDeleted = db.delete(
+                            MoviesContract.SortEntry.TABLE_SORT,
+                            selection,
+                            selectionArgs);
+                    // reset _ID
+                    db.execSQL("DELETE FROM " + MoviesContract.SortEntry.TABLE_SORT +
+                            " WHERE " + MoviesContract.SortEntry.COLUMN_MOVIE_ID +
+                            "='" + String.valueOf(ContentUris.parseId(uri)) + "'" +
+                            " AND " + MoviesContract.SortEntry.COLUMN_SORT_BY +
+                            "='favorite';");
+                    Log.e(LOG_TAG, db.toString());
                     break;
                 default:
                     throw new UnsupportedOperationException("Unknown uri: " + uri);

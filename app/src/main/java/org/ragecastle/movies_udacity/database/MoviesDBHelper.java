@@ -13,7 +13,7 @@ import android.util.Log;
 public class MoviesDBHelper extends SQLiteOpenHelper {
     public static final String LOG_TAG = MoviesDBHelper.class.getSimpleName();
 
-    private static final int DATABASE_VERSION = 18;
+    private static final int DATABASE_VERSION = 19;
 
     static final String DATABASE_NAME = "movies.db";
 
@@ -59,6 +59,7 @@ public class MoviesDBHelper extends SQLiteOpenHelper {
 
         final String SQL_CREATE_SORT_TABLE = "CREATE TABLE " +
                 MoviesContract.SortEntry.TABLE_SORT + " (" +
+                MoviesContract.SortEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 MoviesContract.SortEntry.COLUMN_MOVIE_ID + " TEXT NOT NULL, " +
                 MoviesContract.SortEntry.COLUMN_SORT_BY + " TEXT NOT NULL, " +
                 " FOREIGN KEY (" + MoviesContract.SortEntry.COLUMN_MOVIE_ID + ")" +

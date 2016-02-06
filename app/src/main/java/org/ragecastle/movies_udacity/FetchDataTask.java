@@ -2,6 +2,7 @@ package org.ragecastle.movies_udacity;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -36,6 +37,32 @@ public class FetchDataTask extends AsyncTask<Void, Void, Void> {
 
     @Override
     protected Void doInBackground(Void... params) {
+
+        // Clear the database - except for favorites
+        //////////////////////////////////////////////
+
+//        mContext.getContentResolver().delete (
+//                MoviesContract.DetailsEntry.CONTENT_URI,
+//                null,
+//                null);
+
+        mContext.getContentResolver().delete(
+                MoviesContract.TrailersEntry.CONTENT_URI,
+                null,
+                null);
+
+        mContext.getContentResolver().delete (
+                MoviesContract.ReviewsEntry.CONTENT_URI,
+                null,
+                null);
+//
+//        mContext.getContentResolver().delete(
+//                MoviesContract.SortEntry.CONTENT_URI.buildUpon()
+//                        .appendPath("sort_by")
+//                        .build(),
+//                null,
+//                null);
+
 
         URL url = null;
 
@@ -188,46 +215,107 @@ public class FetchDataTask extends AsyncTask<Void, Void, Void> {
         ContentValues detailsValues;
         ContentValues sortValues;
 
-        // Make the movieData parameter a JSONObject
-        JSONObject jsonMovieData = new JSONObject(apiResult);
+        if(apiResult != null) {
 
-        // Extract the list of results from movieData
-        JSONArray movieInfoArray = jsonMovieData.getJSONArray("results");
+            // Make the movieData parameter a JSONObject
+            JSONObject jsonMovieData = new JSONObject(apiResult);
 
-        // Loop through the JSONArray and extract the poster location information
-        for (int i = 0; i < movieInfoArray.length(); i++) {
+            // Extract the list of results from movieData
+            JSONArray movieInfoArray = jsonMovieData.getJSONArray("results");
 
-            // Pull the movieInfo from the Array
-            JSONObject movieInfo = movieInfoArray.getJSONObject(i);
+            // Loop through the JSONArray and extract the poster location information
+            for (int i = 0; i < movieInfoArray.length(); i++) {
 
-            detailsValues = new ContentValues();
-            detailsValues.put(MoviesContract.DetailsEntry.COLUMN_MOVIE_ID,
-                    movieInfo.getString("id"));
-            detailsValues.put(MoviesContract.DetailsEntry.COLUMN_TITLE,
-                    movieInfo.getString("title"));
-            detailsValues.put(MoviesContract.DetailsEntry.COLUMN_IMAGE,
-                    movieInfo.getString("poster_path"));
-            detailsValues.put(MoviesContract.DetailsEntry.COLUMN_RELEASE_DATE,
-                    movieInfo.getString("release_date"));
-            detailsValues.put(MoviesContract.DetailsEntry.COLUMN_AVG_RATING,
-                    movieInfo.getString("vote_average"));
-            detailsValues.put(MoviesContract.DetailsEntry.COLUMN_PLOT,
-                    movieInfo.getString("overview"));
+                // Pull the movieInfo from the Array
+                JSONObject movieInfo = movieInfoArray.getJSONObject(i);
 
-            sortValues = new ContentValues();
-            sortValues.put(MoviesContract.SortEntry.COLUMN_SORT_BY, sortBy);
-            sortValues.put(MoviesContract.SortEntry.COLUMN_MOVIE_ID, movieInfo.getString("id"));
+                // Check if movies are in database
+                /////////////////////////////////////////
+                Cursor cursor;
+                String[] projection = {MoviesContract.DetailsEntry.COLUMN_MOVIE_ID};
+
+                cursor = mContext.getContentResolver().query(
+                        MoviesContract.DetailsEntry.CONTENT_URI.buildUpon()
+                                .appendPath(movieInfo.getString("id"))
+                                .build(),
+                        projection,
+                        null,
+                        null,
+                        null
+                );
+
+                Boolean isInDB = false;
+                assert cursor != null;
+                if (cursor.moveToFirst()) {
+                    do {
+                        isInDB = cursor.getString(
+                                cursor.getColumnIndex(
+                                        MoviesContract.DetailsEntry.COLUMN_MOVIE_ID))
+                                .contentEquals(movieInfo.getString("id")) || isInDB;
+                    } while (cursor.moveToNext());
+                }
+                cursor.close();
+
+                if (!isInDB) {
+                    detailsValues = new ContentValues();
+                    detailsValues.put(MoviesContract.DetailsEntry.COLUMN_MOVIE_ID,
+                            movieInfo.getString("id"));
+                    detailsValues.put(MoviesContract.DetailsEntry.COLUMN_TITLE,
+                            movieInfo.getString("title"));
+                    detailsValues.put(MoviesContract.DetailsEntry.COLUMN_IMAGE,
+                            movieInfo.getString("poster_path"));
+                    detailsValues.put(MoviesContract.DetailsEntry.COLUMN_RELEASE_DATE,
+                            movieInfo.getString("release_date"));
+                    detailsValues.put(MoviesContract.DetailsEntry.COLUMN_AVG_RATING,
+                            movieInfo.getString("vote_average"));
+                    detailsValues.put(MoviesContract.DetailsEntry.COLUMN_PLOT,
+                            movieInfo.getString("overview"));
+
+                    // add the movie to the database
+                    mContext.getContentResolver().insert(
+                            MoviesContract.DetailsEntry.CONTENT_URI,
+                            detailsValues);
+                }
+
+                // Check if values are in sort database
+                /////////////////////////////////////////
+                String[] sortProjection = {MoviesContract.SortEntry.COLUMN_MOVIE_ID,
+                        MoviesContract.SortEntry.COLUMN_SORT_BY};
+
+                cursor = mContext.getContentResolver().query(
+                        MoviesContract.SortEntry.CONTENT_URI.buildUpon()
+                                .appendPath(movieInfo.getString("id"))
+                                .build(),
+                        sortProjection,
+                        null,
+                        null,
+                        null
+                );
+
+                Boolean isSorted = false;
+                assert cursor != null;
+                if (cursor.moveToFirst()) {
+                    do {
+                        isSorted = cursor.getString(
+                                cursor.getColumnIndex(MoviesContract.SortEntry.COLUMN_SORT_BY))
+                                .contentEquals(sortBy) || isSorted;
+                    } while (cursor.moveToNext());
+                }
+                cursor.close();
+
+                if (!isSorted) {
+                    sortValues = new ContentValues();
+                    sortValues.put(MoviesContract.SortEntry.COLUMN_SORT_BY, sortBy);
+                    sortValues.put(MoviesContract.SortEntry.COLUMN_MOVIE_ID, movieInfo.getString("id"));
 //                sortValues.put(MoviesContract.SortEntry.COLUMN_IMAGE, movieInfo.getString("poster_path"));
 
-            Log.i(LOG_TAG, "Added " + movieInfo.getString("title"));
-
-            // add the movie to the database
-            mContext.getContentResolver().insert(MoviesContract.DetailsEntry.CONTENT_URI,
-                    detailsValues);
-            mContext.getContentResolver().insert(MoviesContract.SortEntry.CONTENT_URI.buildUpon()
-                            .appendPath("sort_by")
-                            .build(),
-                    sortValues);
+                    mContext.getContentResolver().insert(
+                            MoviesContract.SortEntry.CONTENT_URI.buildUpon()
+                                    .appendPath("sort_by")
+                                    .build(),
+                            sortValues);
+                }
+            }
         }
     }
 
@@ -259,9 +347,6 @@ public class FetchDataTask extends AsyncTask<Void, Void, Void> {
                         movieInfo.getString("name"));
                 trailerValues.put(MoviesContract.TrailersEntry.COLUMN_SITE,
                         movieInfo.getString("site"));
-
-                Log.i(LOG_TAG, "Added trailer for " + movieInfo.getString("id"));
-
                 // add the movie to the database
                 mContext.getContentResolver().insert(MoviesContract.TrailersEntry.CONTENT_URI,
                         trailerValues);
@@ -298,8 +383,6 @@ public class FetchDataTask extends AsyncTask<Void, Void, Void> {
                         movieInfo.getString("content"));
                 reviewValues.put(MoviesContract.ReviewsEntry.COLUMN_URL,
                         movieInfo.getString("url"));
-
-                Log.i(LOG_TAG, "Added review for " + movieInfo.getString("id"));
 
                 // add the movie to the database
                 mContext.getContentResolver().insert(MoviesContract.ReviewsEntry.CONTENT_URI,
@@ -344,7 +427,7 @@ public class FetchDataTask extends AsyncTask<Void, Void, Void> {
             return buffer.toString();
 
         } catch (IOException e) {
-            Log.e(LOG_TAG, "Check the API Key");
+            Log.e(LOG_TAG, "Check the API Key " + url.toString());
         } finally {
             try {
                 if (reader != null) {

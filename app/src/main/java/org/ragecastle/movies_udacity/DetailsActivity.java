@@ -78,10 +78,21 @@ public class DetailsActivity extends AppCompatActivity {
 
             } while (cursor.moveToNext());
         }
+        cursor.close();
 
         if (isFavorite) {
             // TODO: Remove from favorites
-            Toast.makeText(this, "Already in favorites", Toast.LENGTH_SHORT).show();
+            getContentResolver().delete(
+                MoviesContract.SortEntry.CONTENT_URI.buildUpon()
+                        .appendPath(intent.getStringExtra("movie_id"))
+                        .build(),
+                null,
+                null);
+            Log.i(LOG_TAG, MoviesContract.SortEntry.CONTENT_URI.buildUpon()
+                    .appendPath(intent.getStringExtra("movie_id"))
+                    .build().toString());
+
+            Toast.makeText(this, "Removed from favorites", Toast.LENGTH_SHORT).show();
         } else {
             favoriteValues = new ContentValues();
             favoriteValues.put(MoviesContract.SortEntry.COLUMN_SORT_BY, "favorite");

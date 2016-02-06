@@ -77,6 +77,9 @@ public class DetailsFragment extends Fragment {
         TextView voteAvgView = (TextView) rootView.findViewById(R.id.movie_vote_text);
         TextView plotView = (TextView) rootView.findViewById(R.id.movie_overview_text);
 
+        // TODO: Remove Log
+        Log.e(LOG_TAG, intent.getStringExtra("movie_id"));
+
         Cursor cursor;
 
         String[] projection = {
@@ -167,8 +170,7 @@ public class DetailsFragment extends Fragment {
                 });
                 linearLayout.addView(textView);
             } while (cursor.moveToNext());
-            cursor.close();
-        }
+        } cursor.close();
     }
 
     private void putReviews(){
@@ -208,8 +210,7 @@ public class DetailsFragment extends Fragment {
                 });
                 linearLayout.addView(textView);
             } while (cursor.moveToNext());
-            cursor.close();
-        }
+          }  cursor.close();
     }
 }
 
