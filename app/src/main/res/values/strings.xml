@@ -16,8 +16,11 @@
     <string name="vote_view_text">Vote Text</string>
     <string name="plot_view_text">Overview Text</string>
     <string name="poster_description">Poster for Movie</string>
-    <string name="review_view_text">reviews</string>
+    <string name="review_view_text">No Reviews Found</string>
     <string name="favorite_button_text">Favorite</string>
     <string name="action_sort_by_favorite">Sort by: Favorite</string>
     <string name="trailer_view_text">Trailer_1</string>
+    <string name="trailer_name">No_Trailers_Found</string>
+    <string name="review_author">Author</string>
+    <string name="review_title">Title</string>
 </resources>

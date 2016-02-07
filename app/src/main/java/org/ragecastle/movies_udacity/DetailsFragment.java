@@ -11,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -20,7 +21,9 @@ import com.squareup.picasso.Picasso;
 
 import org.ragecastle.movies_udacity.adapters.Movie;
 import org.ragecastle.movies_udacity.database.MoviesContract;
+import org.w3c.dom.Text;
 
+import java.awt.font.TextAttribute;
 import java.net.URI;
 import java.util.zip.Inflater;
 
@@ -35,6 +38,7 @@ public class DetailsFragment extends Fragment {
     private final String LOG_TAG = DetailsFragment.class.getSimpleName();
 
     private View rootView;
+    private LinearLayout extrasLayout;
 
     public DetailsFragment(){ }
 
@@ -52,12 +56,20 @@ public class DetailsFragment extends Fragment {
         // TODO: make trailers and reviews more presentable
 
         rootView = inflater.inflate(R.layout.fragment_detail, container, false);
+        extrasLayout = (LinearLayout) rootView.findViewById(R.id.extras_layout);
 
         putDetails();
         putTrailers();
         putReviews();
 
         return rootView;
+    }
+
+    @Override
+    public void onDestroyView() {
+//        extrasLayout.removeView(trailerFrame);
+//        extrasLayout.removeView(reviewsLayout);
+        super.onDestroyView();
     }
 
     private void putDetails(){
@@ -76,9 +88,6 @@ public class DetailsFragment extends Fragment {
         TextView releaseDateView = (TextView) rootView.findViewById(R.id.movie_release_text);
         TextView voteAvgView = (TextView) rootView.findViewById(R.id.movie_vote_text);
         TextView plotView = (TextView) rootView.findViewById(R.id.movie_overview_text);
-
-        // TODO: Remove Log
-        Log.e(LOG_TAG, intent.getStringExtra("movie_id"));
 
         Cursor cursor;
 
@@ -158,9 +167,12 @@ public class DetailsFragment extends Fragment {
                         .appendQueryParameter("v", key)
                         .build();
 
-                LinearLayout linearLayout = (LinearLayout) rootView.findViewById(R.id.extras_layout);
-                TextView textView = new TextView(getActivity());
-                textView.setText(trailerName); textView.setOnClickListener(new View.OnClickListener() {
+                TextView trailerText = new TextView(getActivity());
+                trailerText.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+                trailerText.setPadding(0, 5, 0, 5);
+                trailerText.setTextSize(2, 20);
+                trailerText.setText(trailerName);
+                trailerText.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         //create new intent to launch the detail page
@@ -168,9 +180,11 @@ public class DetailsFragment extends Fragment {
                         startActivity(intent);
                     }
                 });
-                linearLayout.addView(textView);
+                extrasLayout.addView(trailerText);
             } while (cursor.moveToNext());
-        } cursor.close();
+        }
+        assert cursor != null;
+        cursor.close();
     }
 
     private void putReviews(){
@@ -196,11 +210,14 @@ public class DetailsFragment extends Fragment {
             do {
                 review = cursor.getString(cursor.getColumnIndex(MoviesContract.ReviewsEntry.COLUMN_CONTENT));
                 final String url = cursor.getString(cursor.getColumnIndex(MoviesContract.ReviewsEntry.COLUMN_URL));
-
-                LinearLayout linearLayout = (LinearLayout) rootView.findViewById(R.id.extras_layout);
-                TextView textView = new TextView(getActivity());
-                textView.setText(review);
-                textView.setOnClickListener(new View.OnClickListener() {
+//
+//                LinearLayout linearLayout = (LinearLayout) rootView.findViewById(R.id.extras_layout);
+                TextView reviewText = new TextView(getActivity());
+//                TextView reviewText = (TextView) reviewsView.findViewById(R.id.reviews_text);
+                reviewText.setMaxLines(3);
+                reviewText.setPadding(0, 5, 0, 5);
+                reviewText.setText(review);
+                reviewText.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         //create new intent to launch the detail page
@@ -208,9 +225,12 @@ public class DetailsFragment extends Fragment {
                         startActivity(intent);
                     }
                 });
-                linearLayout.addView(textView);
+                extrasLayout.addView(reviewText);
+//                linearLayout.addView(textView);
             } while (cursor.moveToNext());
-          }  cursor.close();
+        }
+        assert cursor != null;
+        cursor.close();
     }
 }
 

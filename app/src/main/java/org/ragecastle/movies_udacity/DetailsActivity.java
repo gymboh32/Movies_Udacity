@@ -65,16 +65,15 @@ public class DetailsActivity extends AppCompatActivity {
         );
 
         Boolean isFavorite = false;
-        if (cursor.moveToFirst() ) {
+        if (cursor != null && cursor.moveToFirst()) {
             do {
                 isFavorite =
                         cursor.getString(
                                 cursor.getColumnIndex(
                                         MoviesContract.SortEntry.COLUMN_SORT_BY))
                                 .contentEquals("favorite") || isFavorite;
-
-                Log.e(LOG_TAG, isFavorite.toString());
-                Log.e(LOG_TAG, cursor.getString(cursor.getColumnIndex(MoviesContract.SortEntry.COLUMN_SORT_BY)));
+                // TODO: Remove Log
+//                Log.e(LOG_TAG, cursor.getString(cursor.getColumnIndex(MoviesContract.SortEntry.COLUMN_SORT_BY)));
 
             } while (cursor.moveToNext());
         }
@@ -82,21 +81,20 @@ public class DetailsActivity extends AppCompatActivity {
 
         if (isFavorite) {
             // TODO: Remove from favorites
-            getContentResolver().delete(
-                MoviesContract.SortEntry.CONTENT_URI.buildUpon()
-                        .appendPath(intent.getStringExtra("movie_id"))
-                        .build(),
-                null,
-                null);
-            Log.i(LOG_TAG, MoviesContract.SortEntry.CONTENT_URI.buildUpon()
-                    .appendPath(intent.getStringExtra("movie_id"))
-                    .build().toString());
+//            getContentResolver().delete(
+//                MoviesContract.SortEntry.CONTENT_URI.buildUpon()
+//                        .appendPath(intent.getStringExtra("movie_id"))
+//                        .build(),
+//                    MoviesContract.SortEntry.COLUMN_MOVIE_ID,
+//                null);
 
-            Toast.makeText(this, "Removed from favorites", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Removing from favorites is in the works!", Toast.LENGTH_SHORT).show();
         } else {
             favoriteValues = new ContentValues();
-            favoriteValues.put(MoviesContract.SortEntry.COLUMN_SORT_BY, "favorite");
-            favoriteValues.put(MoviesContract.SortEntry.COLUMN_MOVIE_ID, intent.getStringExtra("movie_id"));
+            favoriteValues.put(MoviesContract.SortEntry.COLUMN_SORT_BY,
+                    "favorite");
+            favoriteValues.put(MoviesContract.SortEntry.COLUMN_MOVIE_ID,
+                    intent.getStringExtra("movie_id"));
 
             this.getContentResolver().insert(
                     MoviesContract.SortEntry.CONTENT_URI.buildUpon()

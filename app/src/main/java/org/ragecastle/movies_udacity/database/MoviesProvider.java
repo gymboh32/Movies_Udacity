@@ -221,7 +221,9 @@ public class MoviesProvider extends ContentProvider {
                 break;
             }
             case SORT_WITH_ID: {
-                long _id = db.insert(MoviesContract.SortEntry.TABLE_SORT, null, values);
+                long _id = db.insert(MoviesContract.SortEntry.TABLE_SORT,
+                        null,
+                        values);
                 // insert unless it is already contained in the database
                 if (_id > 0) {
                     returnUri = MoviesContract.SortEntry.buildReviewsUri(_id);
@@ -244,7 +246,7 @@ public class MoviesProvider extends ContentProvider {
             final int match = uriMatcher.match(uri);
             int numDeleted;
             switch(match){
-               case MOVIE_SORT_PARAM:
+                case MOVIE_SORT_PARAM:
                     numDeleted = db.delete(
                             MoviesContract.SortEntry.TABLE_SORT,
                             selection,
@@ -281,17 +283,18 @@ public class MoviesProvider extends ContentProvider {
                             MoviesContract.ReviewsEntry.TABLE_REVIEWS + "'");
                     break;
                 case SORT_WITH_ID:
-                    numDeleted = db.delete(
+                    // TODO: make this not shitty
+                   numDeleted = db.delete(
                             MoviesContract.SortEntry.TABLE_SORT,
                             selection,
                             selectionArgs);
                     // reset _ID
                     db.execSQL("DELETE FROM " + MoviesContract.SortEntry.TABLE_SORT +
                             " WHERE " + MoviesContract.SortEntry.COLUMN_MOVIE_ID +
-                            "='" + String.valueOf(ContentUris.parseId(uri)) + "'" +
-                            " AND " + MoviesContract.SortEntry.COLUMN_SORT_BY +
-                            "='favorite';");
-                    Log.e(LOG_TAG, db.toString());
+                            "='" + String.valueOf(ContentUris.parseId(uri)) +
+                            "' AND " + MoviesContract.SortEntry.COLUMN_SORT_BY +
+                            "='favorite'");
+                    Log.e(LOG_TAG, String.valueOf(ContentUris.parseId(uri)));
                     break;
                 default:
                     throw new UnsupportedOperationException("Unknown uri: " + uri);

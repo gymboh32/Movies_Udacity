@@ -69,25 +69,29 @@ public class MainFragment extends Fragment
 
         switch (item.getItemId()) {
             case R.id.action_refresh:
-                Toast.makeText(getActivity(), "Refreshing", Toast.LENGTH_LONG).show();
+                Toast.makeText(getActivity(), "Refreshing", Toast.LENGTH_SHORT).show();
                 refresh();
+                getLoaderManager().restartLoader(LOADER_ID, null, this);
                 return true;
             case R.id.action_sort_by_popular:
-                Toast.makeText(getActivity(), "Sorting by Popularity", Toast.LENGTH_LONG).show();
+                Toast.makeText(getActivity(), "Sorting by Popularity", Toast.LENGTH_SHORT).show();
                 sharedEditor.putString(getString(R.string.pref_sort_key), POPULAR);
                 sharedEditor.apply();
+                getLoaderManager().restartLoader(LOADER_ID, null, this);
 //                fillGrid();
                 return true;
             case R.id.action_sort_by_rating:
-                Toast.makeText(getActivity(), "Sorting by Rating", Toast.LENGTH_LONG).show();
+                Toast.makeText(getActivity(), "Sorting by Rating", Toast.LENGTH_SHORT).show();
                 sharedEditor.putString(getString(R.string.pref_sort_key), RATING);
                 sharedEditor.apply();
+                getLoaderManager().restartLoader(LOADER_ID, null, this);
 //                fillGrid();
                 return true;
             case R.id.action_sort_by_favorite:
-                Toast.makeText(getActivity(), "Sorting by Favorite", Toast.LENGTH_LONG).show();
+                Toast.makeText(getActivity(), "Sorting by Favorite", Toast.LENGTH_SHORT).show();
                 sharedEditor.putString(getString(R.string.pref_sort_key), FAVORITES);
                 sharedEditor.apply();
+                getLoaderManager().restartLoader(LOADER_ID, null, this);
 //                fillGrid();
                 return true;
             default:
@@ -186,17 +190,11 @@ public class MainFragment extends Fragment
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
 
-        if (posterAdapter != null)
-        {
-            if (cursor != null) {
-                posterAdapter.swapCursor(cursor);
-            }
-            else{
-                Log.e(LOG_TAG, "Cursor broke");
-            }
+        if (posterAdapter != null && cursor != null) {
+            posterAdapter.swapCursor(cursor);
         }
         else {
-            Log.e(LOG_TAG, "adapter broke");
+            Log.e(LOG_TAG, "adapter or cursor broke");
         }
     }
 
