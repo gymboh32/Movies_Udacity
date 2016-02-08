@@ -1,11 +1,14 @@
 package org.ragecastle.movies_udacity;
 
-import android.app.Fragment;
-import android.content.ActivityNotFoundException;
+import android.support.v4.app.Fragment;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Parcel;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -25,6 +28,7 @@ import org.w3c.dom.Text;
 
 import java.awt.font.TextAttribute;
 import java.net.URI;
+import java.util.List;
 import java.util.zip.Inflater;
 
 /**
@@ -34,6 +38,8 @@ import java.util.zip.Inflater;
  *
  */
 public class DetailsFragment extends Fragment {
+
+    // TODO: find out why loaderCallbacks<Cursor> had worse performance than using multiple cursors.
 
     private final String LOG_TAG = DetailsFragment.class.getSimpleName();
 
@@ -58,21 +64,40 @@ public class DetailsFragment extends Fragment {
         rootView = inflater.inflate(R.layout.fragment_detail, container, false);
         extrasLayout = (LinearLayout) rootView.findViewById(R.id.extras_layout);
 
-        putDetails();
-        putTrailers();
-        putReviews();
+        Cursor detailsCursor = getCursor(MoviesContract.DetailsEntry.CONTENT_URI,
+                new String[] {MoviesContract.DetailsEntry.COLUMN_TITLE,
+                        MoviesContract.DetailsEntry.COLUMN_IMAGE,
+                        MoviesContract.DetailsEntry.COLUMN_RELEASE_DATE,
+                        MoviesContract.DetailsEntry.COLUMN_AVG_RATING,
+                        MoviesContract.DetailsEntry.COLUMN_PLOT});
+
+        Cursor trailersCursor = getCursor(MoviesContract.TrailersEntry.CONTENT_URI,
+                new String[]{MoviesContract.TrailersEntry.COLUMN_SITE,
+                        MoviesContract.TrailersEntry.COLUMN_NAME,
+                        MoviesContract.TrailersEntry.COLUMN_TRAILER_KEY});
+
+        Cursor reviewsCursor = getCursor(MoviesContract.ReviewsEntry.CONTENT_URI,
+                new String[]{MoviesContract.ReviewsEntry.COLUMN_CONTENT,
+                        MoviesContract.ReviewsEntry.COLUMN_URL});
+
+        putDetails(detailsCursor);
+        detailsCursor.close();
+
+        putTrailers(trailersCursor);
+        trailersCursor.close();
+
+        putReviews(reviewsCursor);
+        reviewsCursor.close();
 
         return rootView;
     }
 
     @Override
-    public void onDestroyView() {
-//        extrasLayout.removeView(trailerFrame);
-//        extrasLayout.removeView(reviewsLayout);
-        super.onDestroyView();
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
     }
 
-    private void putDetails(){
+    private void putDetails(Cursor cursor){
 
         String title = "title";
         String image = "image";
@@ -81,32 +106,12 @@ public class DetailsFragment extends Fragment {
         String plot = "plot";
 
         final String BASE_URL = "http://image.tmdb.org/t/p/w185";
-        Intent intent = getActivity().getIntent();
 
         TextView titleView = (TextView) rootView.findViewById(R.id.movie_title_text);
         ImageView poster = (ImageView) rootView.findViewById(R.id.poster_image);
         TextView releaseDateView = (TextView) rootView.findViewById(R.id.movie_release_text);
         TextView voteAvgView = (TextView) rootView.findViewById(R.id.movie_vote_text);
         TextView plotView = (TextView) rootView.findViewById(R.id.movie_overview_text);
-
-        Cursor cursor;
-
-        String[] projection = {
-                MoviesContract.DetailsEntry.COLUMN_MOVIE_ID,
-                MoviesContract.DetailsEntry.COLUMN_TITLE,
-                MoviesContract.DetailsEntry.COLUMN_IMAGE,
-                MoviesContract.DetailsEntry.COLUMN_RELEASE_DATE,
-                MoviesContract.DetailsEntry.COLUMN_AVG_RATING,
-                MoviesContract.DetailsEntry.COLUMN_PLOT};
-
-        cursor = getActivity().getContentResolver().query(
-                MoviesContract.DetailsEntry.CONTENT_URI.buildUpon()
-                        .appendPath(intent.getStringExtra("movie_id"))
-                        .build(),
-                projection,
-                null,
-                null,
-                null);
 
         if (cursor != null && cursor.moveToFirst()){
             do {
@@ -116,7 +121,6 @@ public class DetailsFragment extends Fragment {
                 avg_rating = cursor.getString(cursor.getColumnIndex(MoviesContract.DetailsEntry.COLUMN_AVG_RATING));
                 plot = cursor.getString(cursor.getColumnIndex(MoviesContract.DetailsEntry.COLUMN_PLOT));
             } while (cursor.moveToNext());
-            cursor.close();
         }
 
         release_date = "Release Date: \n" + release_date;
@@ -134,26 +138,9 @@ public class DetailsFragment extends Fragment {
         plotView.setText(plot);
     }
 
-    private void putTrailers(){
+    private void putTrailers(Cursor cursor){
 
-        Cursor cursor;
-        Intent intent = getActivity().getIntent();
-
-        String[] reviewProjection = {
-                MoviesContract.TrailersEntry.COLUMN_SITE,
-                MoviesContract.TrailersEntry.COLUMN_TRAILER_KEY,
-                MoviesContract.TrailersEntry.COLUMN_NAME};
-
-        cursor = getActivity().getContentResolver().query(
-                MoviesContract.TrailersEntry.CONTENT_URI.buildUpon()
-                        .appendPath(intent.getStringExtra("movie_id"))
-                        .build(),
-                reviewProjection,
-                null,
-                null,
-                null);
-
-        if (cursor != null && cursor.moveToFirst()){
+        if (cursor != null && cursor.moveToFirst()) {
             do {
                 String trailerName = cursor.getString(cursor.getColumnIndex(MoviesContract.TrailersEntry.COLUMN_NAME));
                 String site = cursor.getString(cursor.getColumnIndex(MoviesContract.TrailersEntry.COLUMN_SITE));
@@ -175,7 +162,7 @@ public class DetailsFragment extends Fragment {
                 trailerText.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        //create new intent to launch the detail page
+                        //create new intent to launch the trailer
                         Intent intent = new Intent(Intent.ACTION_VIEW, builder);
                         startActivity(intent);
                     }
@@ -183,54 +170,48 @@ public class DetailsFragment extends Fragment {
                 extrasLayout.addView(trailerText);
             } while (cursor.moveToNext());
         }
-        assert cursor != null;
-        cursor.close();
     }
 
-    private void putReviews(){
+    private void putReviews(Cursor cursor){
 
-        final Cursor cursor;
-        Intent intent = getActivity().getIntent();
         String review;
-        String[] reviewProjection = {
-                MoviesContract.ReviewsEntry.COLUMN_MOVIE_ID,
-                MoviesContract.ReviewsEntry.COLUMN_CONTENT,
-                MoviesContract.ReviewsEntry.COLUMN_URL};
-
-        cursor = getActivity().getContentResolver().query(
-                MoviesContract.ReviewsEntry.CONTENT_URI.buildUpon()
-                        .appendPath(intent.getStringExtra("movie_id"))
-                        .build(),
-                reviewProjection,
-                null,
-                null,
-                null);
 
         if (cursor != null && cursor.moveToFirst()){
             do {
                 review = cursor.getString(cursor.getColumnIndex(MoviesContract.ReviewsEntry.COLUMN_CONTENT));
                 final String url = cursor.getString(cursor.getColumnIndex(MoviesContract.ReviewsEntry.COLUMN_URL));
-//
-//                LinearLayout linearLayout = (LinearLayout) rootView.findViewById(R.id.extras_layout);
+
                 TextView reviewText = new TextView(getActivity());
-//                TextView reviewText = (TextView) reviewsView.findViewById(R.id.reviews_text);
                 reviewText.setMaxLines(3);
                 reviewText.setPadding(0, 5, 0, 5);
                 reviewText.setText(review);
                 reviewText.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        //create new intent to launch the detail page
+                        //create new intent to go to review
                         Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
                         startActivity(intent);
                     }
                 });
                 extrasLayout.addView(reviewText);
-//                linearLayout.addView(textView);
-            } while (cursor.moveToNext());
+           } while (cursor.moveToNext());
         }
-        assert cursor != null;
-        cursor.close();
+    }
+
+    private Cursor getCursor(Uri baseUri, String [] projection){
+
+        Intent intent = getActivity().getIntent();
+
+        Uri uri = baseUri.buildUpon()
+                .appendPath(intent.getStringExtra("movie_id"))
+                .build();
+
+        return getActivity().getContentResolver().query(
+                uri,
+                projection,
+                null,
+                null,
+                null);
     }
 }
 

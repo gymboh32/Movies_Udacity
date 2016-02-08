@@ -85,7 +85,7 @@
 
             <TextView
                 android:id="@+id/movie_overview_text"
-                android:layout_weight="1"
+                android:layout_weight="2"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:textAppearance="?android:attr/textAppearanceLarge"
@@ -95,24 +95,26 @@
 
             <!--<TextView-->
                 <!--android:id="@+id/movie_trailer_text"-->
-                <!--android:layout_weight="2"-->
+                <!--android:layout_weight="1"-->
                 <!--android:layout_width="match_parent"-->
                 <!--android:layout_height="0dp"-->
                 <!--android:text="@string/trailer_view_text"-->
                 <!--android:layout_marginTop="10dp"-->
-                <!--android:textAppearance="?android:attr/textAppearanceMedium" />-->
+                <!--android:textAppearance="?android:attr/textAppearanceMedium"-->
+                <!--android:textAlignment="center"/>-->
+
+            <!--<TextView-->
+                <!--android:id="@+id/movie_review_text"-->
+                <!--android:layout_width="match_parent"-->
+                <!--android:layout_height="0dp"-->
+                <!--android:layout_weight="1"-->
+                <!--android:textAppearance="?android:attr/textAppearanceMedium"-->
+                <!--android:text="@string/review_view_text"-->
+                <!--android:maxLines="3"-->
+                <!--android:layout_marginTop="10dp"-->
+                <!--android:layout_marginEnd="@dimen/activity_vertical_margin" />-->
 
         </LinearLayout>
-        <!--<TextView-->
-            <!--android:id="@+id/movie_review_text"-->
-            <!--android:layout_width="match_parent"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--android:textAppearance="?android:attr/textAppearanceLarge"-->
-            <!--android:text="@string/review_view_text"-->
-            <!--android:layout_marginTop="10dp"-->
-            <!--android:layout_marginEnd="@dimen/activity_vertical_margin"-->
-            <!--android:layout_below="@+id/movie_overview_text"-->
-            <!--android:layout_alignStart="@+id/movie_overview_text" />-->
 
     </LinearLayout>
 

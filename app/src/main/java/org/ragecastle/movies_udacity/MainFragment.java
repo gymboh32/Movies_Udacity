@@ -109,7 +109,6 @@ public class MainFragment extends Fragment
 
         gridView = (GridView) rootView.findViewById(R.id.gridview_posters);
         posterAdapter = new MoviePosterAdapter(getActivity(), null, 0);
-//        fillGrid();
         gridView.setAdapter(posterAdapter);
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -117,15 +116,13 @@ public class MainFragment extends Fragment
                                     View view,
                                     int position,
                                     long id) {
-//                Movie movie = posterAdapter.getItem(position);
+
                 Cursor cursor = (Cursor) parent.getItemAtPosition(position);
                 String movieId;
                 if (cursor != null) {
                     // get the movie id to pass to the next screen
                     movieId = cursor.getString(
-                                cursor.getColumnIndex(
-                                    MoviesContract.DetailsEntry.COLUMN_MOVIE_ID));
-//                    cursor.close();
+                            cursor.getColumnIndex(MoviesContract.DetailsEntry.COLUMN_MOVIE_ID));
                     //create new intent to launch the detail page
                     Intent intent = new Intent(getActivity(), DetailsActivity.class);
                     intent.putExtra("movie_id", movieId);
@@ -151,7 +148,7 @@ public class MainFragment extends Fragment
     public void refresh() {
         FetchDataTask fetchMoviesTask = new FetchDataTask(getActivity());
         fetchMoviesTask.execute();
-//        fillGrid();
+        getLoaderManager().restartLoader(LOADER_ID, null, this);
     }
 
     private String getSortBy() {
@@ -203,63 +200,4 @@ public class MainFragment extends Fragment
 
         posterAdapter.swapCursor(null);
     }
-
-
-//    // kill with fire?
-//    private void fillGrid(){
-//        Cursor cursor;
-//        Movie[] moviePosters;
-//
-//        // get a list of movie ids
-//        String [] movieProjection = {
-//                "details.movie_id",
-//                "details.image",
-//                MoviesContract.SortEntry.COLUMN_SORT_BY};
-//
-//        cursor = getActivity().getContentResolver().query(
-//                MoviesContract.SortEntry.CONTENT_URI.buildUpon().
-//                        appendPath("sort_by")
-//                        .build(),
-//                movieProjection,
-//                MoviesContract.SortEntry.COLUMN_SORT_BY,
-//                new String[]{getSortBy()},
-//                null);
-//
-//        moviePosters = new Movie [cursor.getCount()];
-//
-//        if (cursor.moveToFirst()) {
-//            int i=0;
-//            do {
-//                moviePosters[i] = new Movie(
-//                        cursor.getString(
-//                                cursor.getColumnIndex(
-//                                        MoviesContract.SortEntry.COLUMN_MOVIE_ID)),
-//                        cursor.getString(
-//                                cursor.getColumnIndex(
-//                                        MoviesContract.DetailsEntry.COLUMN_IMAGE)));
-//                i++;
-//            } while (cursor.moveToNext());
-//        }
-//        else {
-//            Log.e(LOG_TAG, "Nothing found in DB");
-////            refresh();
-//        }
-//        cursor.close();
-//
-//        posterAdapter = new MoviePosterAdapter(getActivity(),
-//                Arrays.asList(moviePosters));
-//        // Populate grid view
-//        gridView.setAdapter(posterAdapter);
-//        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-//            @Override
-//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-//                Movie movie = posterAdapter.getItem(position);
-//                //create new intent to launch the detail page
-//                Intent intent = new Intent(getActivity(), DetailsActivity.class);
-//                intent.putExtra("movie_id", movie.id);
-//                startActivity(intent);
-//            }
-//        });
-//    }
-
 }
