@@ -145,11 +145,6 @@ public class FetchDataTask extends AsyncTask<Void, Void, Void> {
                 null,
                 null);
 
-        if (cursor == null) {
-            // TODO: remove log
-            Log.e(LOG_TAG, "No movies in DB");
-        }
-
         movieId = new String[cursor.getCount()];
 
         if (cursor.moveToFirst()){
@@ -224,8 +219,6 @@ public class FetchDataTask extends AsyncTask<Void, Void, Void> {
         ContentValues sortValues;
 
         if(apiResult == null) {
-            // TODO: Remove log
-            Log.e(LOG_TAG, "I HATE this movie");
             return;
         }
 
@@ -333,8 +326,6 @@ public class FetchDataTask extends AsyncTask<Void, Void, Void> {
         ContentValues trailerValues;
 
         if(apiResult==null) {
-            // TODO: Remove log
-            Log.e(LOG_TAG, "No trailers here");
             return;
         }
 
@@ -372,8 +363,6 @@ public class FetchDataTask extends AsyncTask<Void, Void, Void> {
         ContentValues reviewValues;
 
         if(apiResult == null) {
-            // TODO: remove log
-            Log.e(LOG_TAG, "No Review for you");
             return;
         }
 

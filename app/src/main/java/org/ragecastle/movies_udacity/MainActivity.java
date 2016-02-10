@@ -3,32 +3,33 @@ package org.ragecastle.movies_udacity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
 public class MainActivity extends AppCompatActivity {
 
+    private boolean mTwoPane;
+    private final String DETAILS_FRAG_TAG = "DetailsFragment";
     private final String LOG_TAG = MainActivity.class.getSimpleName();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-//
-        // TODO: make Tablet friendly
-//        getContentResolver().delete(MoviesContract.SortEntry.CONTENT_URI.buildUpon()
-//                .appendPath("sort_by")
-//                .build(),
-//                null,
-//                null);
-//        getContentResolver().delete(MoviesContract.DetailsEntry.CONTENT_URI,
-//                null,
-//                null);
 
-        if (savedInstanceState == null) {
-            getSupportFragmentManager().beginTransaction()
-                    .add(R.id.main_container, new MainFragment())
-                    .commit();
+        if (findViewById(R.id.details_container) != null) {
+            mTwoPane = true;
+            if (savedInstanceState == null) {
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.details_container,
+                                new DetailsFragment(),
+                                DETAILS_FRAG_TAG)
+                        .commit();
+            }
+        }
+        else {
+            mTwoPane = false;
         }
     }
 
@@ -50,6 +51,13 @@ public class MainActivity extends AppCompatActivity {
             default:
                 return false;
         }
+    }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        MainFragment mainFragment  = (MainFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.fragment_movies);
     }
 }

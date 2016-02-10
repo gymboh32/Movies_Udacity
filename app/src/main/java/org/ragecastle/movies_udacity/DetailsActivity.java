@@ -28,7 +28,7 @@ public class DetailsActivity extends AppCompatActivity {
 
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.container, new DetailsFragment())
+                    .add(R.id.details_container, new DetailsFragment())
                     .commit();
         }
     }
@@ -72,9 +72,7 @@ public class DetailsActivity extends AppCompatActivity {
                                 cursor.getColumnIndex(
                                         MoviesContract.SortEntry.COLUMN_SORT_BY))
                                 .contentEquals("favorite") || isFavorite;
-                // TODO: Remove Log
-//                Log.e(LOG_TAG, cursor.getString(cursor.getColumnIndex(MoviesContract.SortEntry.COLUMN_SORT_BY)));
-
+            
             } while (cursor.moveToNext());
         }
         cursor.close();

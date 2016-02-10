@@ -283,7 +283,6 @@ public class MoviesProvider extends ContentProvider {
                             MoviesContract.ReviewsEntry.TABLE_REVIEWS + "'");
                     break;
                 case SORT_WITH_ID:
-                    // TODO: make this not shitty
                    numDeleted = db.delete(
                             MoviesContract.SortEntry.TABLE_SORT,
                             selection,

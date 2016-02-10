@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout
+<fragment
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    tools:layout="@android:layout/list_content"
+    tools:context=".MainFragment"
+    android:id="@+id/fragment_movies"
+    android:name="org.ragecastle.movies_udacity.MainFragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:id="@+id/main_container"
-    tools:ignore="MergeRootFrame"
-    tools:context=".MainActivity">
-
-</FrameLayout>
+    />

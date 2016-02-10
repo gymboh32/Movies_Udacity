@@ -201,9 +201,14 @@ public class DetailsFragment extends Fragment {
     private Cursor getCursor(Uri baseUri, String [] projection){
 
         Intent intent = getActivity().getIntent();
+        String movieID = "135397";
+
+        if ( intent.hasExtra("movie_id")) {
+            movieID = intent.getStringExtra("movie_id");
+        }
 
         Uri uri = baseUri.buildUpon()
-                .appendPath(intent.getStringExtra("movie_id"))
+                .appendPath(movieID)
                 .build();
 
         return getActivity().getContentResolver().query(

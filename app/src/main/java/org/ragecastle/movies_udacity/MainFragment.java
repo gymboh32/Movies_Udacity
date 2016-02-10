@@ -1,5 +1,7 @@
 package org.ragecastle.movies_udacity;
 
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.support.v4.app.Fragment;
 import android.content.SharedPreferences;
@@ -78,21 +80,18 @@ public class MainFragment extends Fragment
                 sharedEditor.putString(getString(R.string.pref_sort_key), POPULAR);
                 sharedEditor.apply();
                 getLoaderManager().restartLoader(LOADER_ID, null, this);
-//                fillGrid();
                 return true;
             case R.id.action_sort_by_rating:
                 Toast.makeText(getActivity(), "Sorting by Rating", Toast.LENGTH_SHORT).show();
                 sharedEditor.putString(getString(R.string.pref_sort_key), RATING);
                 sharedEditor.apply();
                 getLoaderManager().restartLoader(LOADER_ID, null, this);
-//                fillGrid();
                 return true;
             case R.id.action_sort_by_favorite:
                 Toast.makeText(getActivity(), "Sorting by Favorite", Toast.LENGTH_SHORT).show();
                 sharedEditor.putString(getString(R.string.pref_sort_key), FAVORITES);
                 sharedEditor.apply();
                 getLoaderManager().restartLoader(LOADER_ID, null, this);
-//                fillGrid();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -127,6 +126,7 @@ public class MainFragment extends Fragment
                     Intent intent = new Intent(getActivity(), DetailsActivity.class);
                     intent.putExtra("movie_id", movieId);
                     startActivity(intent);
+                    // TODO: Replace with fragment manager
                 }
             }
         });
@@ -142,7 +142,14 @@ public class MainFragment extends Fragment
     @Override
     public void onStart() {
         super.onStart();
-        refresh();
+//        refresh();
+    }
+
+    public interface Callback {
+        /**
+         * DetailFragmentCallback for when an item has been selected.
+         */
+        public void onItemSelected(String movie_id);
     }
 
     public void refresh() {
