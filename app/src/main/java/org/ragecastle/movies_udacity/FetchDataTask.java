@@ -40,32 +40,7 @@ public class FetchDataTask extends AsyncTask<Void, Void, Void> {
 
         // Clear the database - DEBUGGING REASONS
         //////////////////////////////////////////////
-
-//        mContext.getContentResolver().delete (
-//                MoviesContract.DetailsEntry.CONTENT_URI,
-//                null,
-//                null);
-//
-        // TODO: check if in database
-        Log.e(LOG_TAG, "removing all trailers");
-        mContext.getContentResolver().delete(
-                MoviesContract.TrailersEntry.CONTENT_URI,
-                null,
-                null);
-
-        // TODO: check if in database
-        Log.e(LOG_TAG, "removing all reviews");
-        mContext.getContentResolver().delete (
-                MoviesContract.ReviewsEntry.CONTENT_URI,
-                null,
-                null);
-//
-//        mContext.getContentResolver().delete(
-//                MoviesContract.SortEntry.CONTENT_URI.buildUpon()
-//                        .appendPath("sort_by")
-//                        .build(),
-//                null,
-//                null);
+        //clearDB();
 
         URL url = null;
 
@@ -234,33 +209,7 @@ public class FetchDataTask extends AsyncTask<Void, Void, Void> {
             // Pull the movieInfo from the Array
             JSONObject movieInfo = movieInfoArray.getJSONObject(i);
 
-             // Check if movies are in database
-            /////////////////////////////////////////
-            Cursor cursor;
-            String[] projection = {MoviesContract.DetailsEntry.COLUMN_MOVIE_ID};
-
-            cursor = mContext.getContentResolver().query(
-                    MoviesContract.DetailsEntry.CONTENT_URI.buildUpon()
-                            .appendPath(movieInfo.getString("id"))
-                            .build(),
-                    projection,
-                    null,
-                    null,
-                    null);
-
-            Boolean isInDB = false;
-            assert cursor != null;
-            if (cursor.moveToFirst()) {
-                do {
-                    isInDB = cursor.getString(
-                            cursor.getColumnIndex(
-                                    MoviesContract.DetailsEntry.COLUMN_MOVIE_ID))
-                            .contentEquals(movieInfo.getString("id")) || isInDB;
-                } while (cursor.moveToNext());
-            }
-            cursor.close();
-
-            if (!isInDB) {
+            if (!isInDB(MoviesContract.DetailsEntry.CONTENT_URI, movieInfo.getString("id"))) {
                 detailsValues = new ContentValues();
                 detailsValues.put(MoviesContract.DetailsEntry.COLUMN_MOVIE_ID,
                         movieInfo.getString("id"));
@@ -282,32 +231,7 @@ public class FetchDataTask extends AsyncTask<Void, Void, Void> {
                         detailsValues);
             }
 
-            // Check if values are in sort database
-            /////////////////////////////////////////
-            String[] sortProjection = {MoviesContract.SortEntry.COLUMN_MOVIE_ID,
-                    MoviesContract.SortEntry.COLUMN_SORT_BY};
-
-            cursor = mContext.getContentResolver().query(
-                    MoviesContract.SortEntry.CONTENT_URI.buildUpon()
-                            .appendPath(movieInfo.getString("id"))
-                            .build(),
-                    sortProjection,
-                    null,
-                    null,
-                    null);
-
-            Boolean isSorted = false;
-            assert cursor != null;
-            if (cursor.moveToFirst()) {
-                do {
-                    isSorted = cursor.getString(
-                            cursor.getColumnIndex(MoviesContract.SortEntry.COLUMN_SORT_BY))
-                            .contentEquals(sortBy) || isSorted;
-                } while (cursor.moveToNext());
-            }
-            cursor.close();
-
-            if (!isSorted) {
+            if (!isInDB(MoviesContract.SortEntry.CONTENT_URI, movieInfo.getString("id"))) {
                 sortValues = new ContentValues();
                 sortValues.put(MoviesContract.SortEntry.COLUMN_SORT_BY, sortBy);
                 sortValues.put(MoviesContract.SortEntry.COLUMN_MOVIE_ID, movieInfo.getString("id"));
@@ -341,21 +265,22 @@ public class FetchDataTask extends AsyncTask<Void, Void, Void> {
              // Pull the movieInfo from the Array
             JSONObject movieInfo = movieInfoArray.getJSONObject(i);
 
-            trailerValues = new ContentValues();
-            trailerValues.put(MoviesContract.TrailersEntry.COLUMN_MOVIE_ID,
-                    movieId);
-            trailerValues.put(MoviesContract.TrailersEntry.COLUMN_TRAILER_ID,
-                    movieInfo.getString("id"));
-            trailerValues.put(MoviesContract.TrailersEntry.COLUMN_TRAILER_KEY,
-                    movieInfo.getString("key"));
-            trailerValues.put(MoviesContract.TrailersEntry.COLUMN_NAME,
-                    movieInfo.getString("name"));
-            trailerValues.put(MoviesContract.TrailersEntry.COLUMN_SITE,
-                    movieInfo.getString("site"));
+            if(!isInDB(MoviesContract.TrailersEntry.CONTENT_URI, movieId)) {
+                trailerValues = new ContentValues();
+                trailerValues.put(MoviesContract.TrailersEntry.COLUMN_MOVIE_ID,
+                        movieId);
+                trailerValues.put(MoviesContract.TrailersEntry.COLUMN_TRAILER_ID,
+                        movieInfo.getString("id"));
+                trailerValues.put(MoviesContract.TrailersEntry.COLUMN_TRAILER_KEY,
+                        movieInfo.getString("key"));
+                trailerValues.put(MoviesContract.TrailersEntry.COLUMN_NAME,
+                        movieInfo.getString("name"));
+                trailerValues.put(MoviesContract.TrailersEntry.COLUMN_SITE,
+                        movieInfo.getString("site"));
 
-            // add the movie to the database
-            mContext.getContentResolver().insert(MoviesContract.TrailersEntry.CONTENT_URI, trailerValues);
-
+                // add the movie to the database
+                mContext.getContentResolver().insert(MoviesContract.TrailersEntry.CONTENT_URI, trailerValues);
+            }
         }
     }
 
@@ -365,36 +290,34 @@ public class FetchDataTask extends AsyncTask<Void, Void, Void> {
         if(apiResult == null) {
             return;
         }
+         // Make the movieData parameter a JSONObject
+        JSONObject jsonMovieData = new JSONObject(apiResult);
+         // Extract the list of results from movieData
+        JSONArray movieInfoArray = jsonMovieData.getJSONArray("results");
 
-            // Make the movieData parameter a JSONObject
-            JSONObject jsonMovieData = new JSONObject(apiResult);
+        // Loop through the JSONArray and extract the poster location information
+        for (int i = 0; i < movieInfoArray.length(); i++) {
+             // Pull the movieInfo from the Array
+            JSONObject movieInfo = movieInfoArray.getJSONObject(i);
 
-            // Extract the list of results from movieData
-            JSONArray movieInfoArray = jsonMovieData.getJSONArray("results");
+             if (!isInDB(MoviesContract.ReviewsEntry.CONTENT_URI, movieId)) {
+                 reviewValues = new ContentValues();
+                 reviewValues.put(MoviesContract.TrailersEntry.COLUMN_MOVIE_ID,
+                         movieId);
+                 reviewValues.put(MoviesContract.ReviewsEntry.COLUMN_REVIEW_ID,
+                         movieInfo.getString("id"));
+                 reviewValues.put(MoviesContract.ReviewsEntry.COLUMN_AUTHOR,
+                         movieInfo.getString("author"));
+                 reviewValues.put(MoviesContract.ReviewsEntry.COLUMN_CONTENT,
+                         movieInfo.getString("content"));
+                 reviewValues.put(MoviesContract.ReviewsEntry.COLUMN_URL,
+                         movieInfo.getString("url"));
 
-
-            // Loop through the JSONArray and extract the poster location information
-            for (int i = 0; i < movieInfoArray.length(); i++) {
-
-                // Pull the movieInfo from the Array
-                JSONObject movieInfo = movieInfoArray.getJSONObject(i);
-
-                reviewValues = new ContentValues();
-                reviewValues.put(MoviesContract.TrailersEntry.COLUMN_MOVIE_ID,
-                        movieId);
-                reviewValues.put(MoviesContract.ReviewsEntry.COLUMN_REVIEW_ID,
-                        movieInfo.getString("id"));
-                reviewValues.put(MoviesContract.ReviewsEntry.COLUMN_AUTHOR,
-                        movieInfo.getString("author"));
-                reviewValues.put(MoviesContract.ReviewsEntry.COLUMN_CONTENT,
-                        movieInfo.getString("content"));
-                reviewValues.put(MoviesContract.ReviewsEntry.COLUMN_URL,
-                        movieInfo.getString("url"));
-
-                // add the movie to the database
-                mContext.getContentResolver().insert(MoviesContract.ReviewsEntry.CONTENT_URI,
-                        reviewValues);
-            }
+                 // add the movie to the database
+                 mContext.getContentResolver().insert(MoviesContract.ReviewsEntry.CONTENT_URI,
+                         reviewValues);
+             }
+        }
     }
 
     public String getResults(URL url){
@@ -423,8 +346,9 @@ public class FetchDataTask extends AsyncTask<Void, Void, Void> {
             // Read the input stream
             reader = new BufferedReader(new InputStreamReader(inputStream));
 
-            // Write the reader to the buffer as long as there is something to write
+            if (!reader.ready()){ return null; }
             String line;
+            // Write the reader to the buffer as long as there is something to write
             while ((line = reader.readLine()) != null) {
                 buffer.append(line).append("\n");
             }
@@ -433,7 +357,7 @@ public class FetchDataTask extends AsyncTask<Void, Void, Void> {
             return buffer.toString();
 
         } catch (IOException e) {
-            Log.e(LOG_TAG, "Check the API Key " + url.toString());
+            Log.e(LOG_TAG, "Check the API Key ");
         } finally {
             try {
                 if (reader != null) {
@@ -446,4 +370,60 @@ public class FetchDataTask extends AsyncTask<Void, Void, Void> {
         return null;
     }
 
+    private boolean isInDB (Uri uri, String movieID) {
+
+        // Check if movies are in database
+        /////////////////////////////////////////
+        Cursor cursor;
+        String[] projection = {MoviesContract.DetailsEntry.COLUMN_MOVIE_ID};
+
+        cursor = mContext.getContentResolver().query(
+                uri.buildUpon()
+                        .appendPath(movieID)
+                        .build(),
+                projection,
+                null,
+                null,
+                null);
+
+        Boolean isInDB = false;
+
+        if (cursor == null) { return isInDB;}
+        if (cursor.moveToFirst()) {
+            do {
+                isInDB = cursor.getString(
+                        cursor.getColumnIndex(
+                                MoviesContract.DetailsEntry.COLUMN_MOVIE_ID))
+                        .contentEquals(movieID) || isInDB;
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+
+        return isInDB;
+    }
+
+    private void clearDB(){
+
+        mContext.getContentResolver().delete (
+                MoviesContract.DetailsEntry.CONTENT_URI,
+                null,
+                null);
+
+        mContext.getContentResolver().delete(
+                MoviesContract.TrailersEntry.CONTENT_URI,
+                null,
+                null);
+
+        mContext.getContentResolver().delete (
+                MoviesContract.ReviewsEntry.CONTENT_URI,
+                null,
+                null);
+
+        mContext.getContentResolver().delete(
+                MoviesContract.SortEntry.CONTENT_URI.buildUpon()
+                        .appendPath("sort_by")
+                        .build(),
+                null,
+                null);
+    }
 }

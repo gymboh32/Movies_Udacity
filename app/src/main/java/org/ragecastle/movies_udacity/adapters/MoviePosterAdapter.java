@@ -61,7 +61,7 @@ public class MoviePosterAdapter extends CursorAdapter {
 
         // TODO: add error to display default image
         // TODO: Figure out this resize crap
-        Picasso.with(context).load(getURL(cursor)).fit().centerCrop().into(view);
+        Picasso.with(context).load(getURL(cursor)).fit().into(view);
     }
 
     @Override

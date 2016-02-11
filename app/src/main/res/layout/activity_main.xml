@@ -7,5 +7,4 @@
     android:id="@+id/fragment_movies"
     android:name="org.ragecastle.movies_udacity.MainFragment"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    />
+    android:layout_height="match_parent" />
