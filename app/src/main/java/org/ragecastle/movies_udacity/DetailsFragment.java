@@ -46,7 +46,15 @@ public class DetailsFragment extends Fragment {
     private View rootView;
     private LinearLayout extrasLayout;
 
-    public DetailsFragment(){ }
+    public static DetailsFragment newInstance (String movieId){
+        DetailsFragment detailsFragment = new DetailsFragment();
+
+        Bundle args = new Bundle();
+        // TODO: fix this
+        args.putString("movie_id", "135397");
+        detailsFragment.setArguments(args);
+        return detailsFragment;
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -200,15 +208,8 @@ public class DetailsFragment extends Fragment {
 
     private Cursor getCursor(Uri baseUri, String [] projection){
 
-        Intent intent = getActivity().getIntent();
-        String movieID = "135397";
-
-        if ( intent.hasExtra("movie_id")) {
-            movieID = intent.getStringExtra("movie_id");
-        }
-
         Uri uri = baseUri.buildUpon()
-                .appendPath(movieID)
+                .appendPath(getMovieId())
                 .build();
 
         return getActivity().getContentResolver().query(
@@ -217,6 +218,14 @@ public class DetailsFragment extends Fragment {
                 null,
                 null,
                 null);
+    }
+
+    public String getMovieId() {
+        Bundle args = getArguments();
+        if (args != null) {
+            return args.getString("movie_id");
+        }
+        return "0";
     }
 }
 

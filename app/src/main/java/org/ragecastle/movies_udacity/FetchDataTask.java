@@ -190,6 +190,9 @@ public class FetchDataTask extends AsyncTask<Void, Void, Void> {
 
     private void putDetailsToDB(String apiResult, String sortBy) throws JSONException {
 
+        // TODO: remove log
+        Log.e(LOG_TAG, "getting details");
+
         ContentValues detailsValues;
         ContentValues sortValues;
 
@@ -231,11 +234,16 @@ public class FetchDataTask extends AsyncTask<Void, Void, Void> {
                         detailsValues);
             }
 
+            // TODO: remove this log
+            Log.e(LOG_TAG, movieInfo.getString("id") + "is already in db");
+
             if (!isInDB(MoviesContract.SortEntry.CONTENT_URI, movieInfo.getString("id"))) {
                 sortValues = new ContentValues();
                 sortValues.put(MoviesContract.SortEntry.COLUMN_SORT_BY, sortBy);
                 sortValues.put(MoviesContract.SortEntry.COLUMN_MOVIE_ID, movieInfo.getString("id"));
-//                sortValues.put(MoviesContract.SortEntry.COLUMN_IMAGE, movieInfo.getString("poster_path"));
+
+                // TODO: remove this log
+                Log.e(LOG_TAG, "added " + movieInfo.getString("id"));
 
                 mContext.getContentResolver().insert(
                         MoviesContract.SortEntry.CONTENT_URI.buildUpon()
@@ -320,7 +328,7 @@ public class FetchDataTask extends AsyncTask<Void, Void, Void> {
         }
     }
 
-    public String getResults(URL url){
+    private String getResults(URL url){
 
         HttpURLConnection connection;
         BufferedReader reader = null;
@@ -368,6 +376,13 @@ public class FetchDataTask extends AsyncTask<Void, Void, Void> {
             }
         }
         return null;
+    }
+
+    @Override
+    protected void onPostExecute(Void aVoid) {
+        super.onPostExecute(aVoid);
+        // TODO: remove log
+        Log.e(LOG_TAG, "ding");
     }
 
     private boolean isInDB (Uri uri, String movieID) {

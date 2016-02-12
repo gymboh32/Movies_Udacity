@@ -27,12 +27,17 @@ public class DetailsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_detail);
 
         if (savedInstanceState == null) {
+            Bundle args  = new Bundle();
+            args.putString("movie_id", getIntent().getStringExtra("movie_id"));
+
+            DetailsFragment detailsFragment = new DetailsFragment();
+            detailsFragment.setArguments(args);
+
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.details_container, new DetailsFragment())
+                    .add(R.id.details_container, detailsFragment)
                     .commit();
         }
     }
-
 
     // TODO: change text of favorite button if already marked as favorite
     // TODO: change onClickListener if already in database

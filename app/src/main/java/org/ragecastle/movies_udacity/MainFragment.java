@@ -122,11 +122,8 @@ public class MainFragment extends Fragment
                     // get the movie id to pass to the next screen
                     movieId = cursor.getString(
                             cursor.getColumnIndex(MoviesContract.DetailsEntry.COLUMN_MOVIE_ID));
-                    //create new intent to launch the detail page
-                    Intent intent = new Intent(getActivity(), DetailsActivity.class);
-                    intent.putExtra("movie_id", movieId);
-                    startActivity(intent);
-                    // TODO: Replace with fragment manager
+
+                    ((Callback) getActivity()).onItemSelected(movieId);
                 }
             }
         });
@@ -142,7 +139,7 @@ public class MainFragment extends Fragment
     @Override
     public void onStart() {
         super.onStart();
-//        refresh();
+        refresh();
     }
 
     public interface Callback {
@@ -182,6 +179,9 @@ public class MainFragment extends Fragment
         String selection = MoviesContract.SortEntry.COLUMN_SORT_BY;
 
         String [] selectionArgs = {getSortBy()};
+
+        // TODO: remove log
+        Log.e(LOG_TAG, getSortBy());
 
         return new CursorLoader(getContext(),
                 uri,
